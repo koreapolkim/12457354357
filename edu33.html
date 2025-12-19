@@ -1,0 +1,4678 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+  <title>피싱예방체험</title>
+
+  <style>
+    :root{
+      --bg1:#EAF6FF;
+      --bg2:#FFFFFF;
+      --primary:#2F8CFF;
+      --primary2:#6DB7FF;
+      --ink:#1F2430;
+      --muted:#7A8191;
+      --card:#FFFFFF;
+      --stroke:rgba(25,28,38,.10);
+      --radius:18px;
+
+      --sat: env(safe-area-inset-top, 0px);
+      --sab: env(safe-area-inset-bottom, 0px);
+
+      /* Kakao-ish */
+      --kakao-bg:#BCD3E6;
+      --kakao-yellow:#FFE44D;
+      --kakao-yellow2:#FFE055;
+
+      /* Bars colors */
+      --c-verify:#2F8CFF;
+      --c-link:#6A2BD1;
+      --c-otp:#12B981;
+      --c-urgency:#F59E0B;
+      --c-money:#FB7185;
+      --c-context:#14B8A6;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", "Segoe UI", Roboto, Arial, sans-serif;
+      color:var(--ink);
+      background: linear-gradient(180deg, var(--bg1), var(--bg2));
+      overflow:hidden;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    .phone{width:100vw;height: calc(var(--vh, 1vh) * 100);background:#fff;overflow:hidden;position:relative;}
+    .app{height:100%;display:flex;flex-direction:column;min-height:0;}
+
+    header{
+      padding: calc(14px + var(--sat)) 14px 12px;
+      background: rgba(255,255,255,.92);
+      border-bottom:1px solid var(--stroke);
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      position:sticky; top:0; z-index:30;
+      backdrop-filter: blur(10px);
+    }
+
+    .fullscreen header{display:none}
+    .fullscreen main{padding:0; overflow:hidden}
+    .fullscreen .app{background:#000}
+
+    .brand{display:flex;align-items:center;gap:10px;min-width:0}
+    .logo{white-space:nowrap;font-size:18px;letter-spacing:-.02em;display:flex;align-items:baseline;gap:0;}
+    .brandStrong{font-weight:950;color:var(--primary);text-shadow: 0 1px 1px rgba(0,0,0,.10);}
+
+    /* ✅ (요청) 브랜드 옆 문구 네이비 */
+    .brandLight{
+      font-size:15px;            /* 폴케어(18px)보다 3pt 작게 */
+      font-weight:900;
+      color:rgba(11,43,91,.92);  /* 네이비 */
+      margin-left:12px;          /* “한 세칸” 느낌 */
+    }
+
+    .subtitle{font-size:14px;font-weight:950;color:rgba(31,36,48,.92);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px;letter-spacing:-.01em;}
+
+    .iconbtn{
+      width:40px;height:40px;border-radius:12px;border:1px solid var(--stroke);
+      background:#fff;display:grid;place-items:center;cursor:pointer;user-select:none;
+      box-shadow: 0 8px 18px rgba(25,28,38,.08);
+    }
+    .burger{width:18px;height:12px; position:relative}
+    .burger::before,.burger::after,.burger span{content:"";position:absolute;left:0;right:0;height:2px;border-radius:2px;background:rgba(31,36,48,.80);}
+    .burger::before{top:0}
+    .burger span{top:5px}
+    .burger::after{bottom:0}
+
+    main{
+      flex:1;min-height:0;overflow:auto;
+      padding:12px 12px calc(16px + var(--sab));
+      -webkit-overflow-scrolling: touch;
+      background: transparent;
+    }
+
+    .card{background:var(--card);border:1px solid var(--stroke);border-radius: var(--radius);box-shadow: 0 8px 18px rgba(25,28,38,.06);}
+    .caseList{display:flex;flex-direction:column;gap:10px}
+    .caseItem{padding:14px;display:flex;gap:12px;align-items:flex-start;cursor:pointer}
+    .caseBody{flex:1;min-width:0}
+    .caseTop{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+    }
+    .caseTitle{font-size:15px;font-weight:950;line-height:1.25;margin:0 0 6px;letter-spacing:-.02em;word-break:keep-all}
+    .caseSub{margin:0;color:var(--muted);font-size:12.5px;line-height:1.35}
+
+    .chip{
+      font-size:12px;
+      font-weight:900;
+      padding:6px 12px;
+      border-radius:9px;
+      border:1px solid rgba(31,36,48,.08);
+      background: rgba(79,163,255,.16);
+      color:#2D70C9;
+      white-space:nowrap;
+    }
+    .chip.blue{background:rgba(79,163,255,.16); color:#2D70C9}
+    .chip.red{background:rgba(255,107,107,.16); color:#D45050}
+    .chip.green{background:rgba(43,196,138,.16); color:#1D9A6C}
+    .chip.orange{background:rgba(255,183,77,.22); color:#B86B1D}
+    .chip.purple{background:rgba(151,71,255,.14); color:#6A2BD1}
+
+    /* 키워드 */
+    .kwWord{
+      display:inline-block;
+      font-weight:950;
+      color:rgba(31,36,48,.90);
+      margin-right:10px;
+      letter-spacing:-.01em;
+    }
+
+    .detailHead{padding:16px}
+    .detailHead h2{margin:0 0 8px;font-size:18px;letter-spacing:-.02em}
+    .detailHead p{margin:0;color:var(--muted);font-size:13px;line-height:1.5}
+    .cta{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}
+    .btn{border:none;padding:12px 14px;border-radius:16px;font-weight:950;cursor:pointer;user-select:none;letter-spacing:-.01em;}
+    .btn.primary{background: linear-gradient(180deg, var(--primary), var(--primary2));color:#fff;box-shadow: 0 14px 22px rgba(47,140,255,.22);}
+    .btn.ghost{background:#fff;border: 1px solid rgba(47,140,255,.28);color: var(--primary);}
+    .btn.block{width:100%}
+
+    /* ✅ (요청/붙임2) 메인 버튼 입체감 + 터치 축소 */
+    .btn{
+      transition: transform .06s ease, box-shadow .12s ease, filter .12s ease;
+    }
+    .btn.primary{
+      box-shadow: 0 8px 16px rgba(38,134,255,.22);
+    }
+    .btn.primary:active{
+      transform: scale(.97);
+      filter: brightness(.98);
+    }
+
+    .overlay.sheet{
+      align-items:flex-end !important;
+      justify-content:center !important;
+      padding:0 !important;
+    }
+    .overlay.sheet .modal{
+  width:min(560px, 100%) !important;
+  border-radius:22px 22px 0 0 !important;
+  transform: translateY(0); /* 기본값 고정 */
+}
+
+/* show일 때만 등장 애니메이션 (그리고 both 제거!) */
+.overlay.sheet.show .modal{
+  animation: sheetUp .18s ease;
+}
+    @keyframes sheetUp{
+      from{ transform: translateY(24px); opacity:0; }
+      to{ transform: translateY(0); opacity:1; }
+    }
+
+    .infoBlock{padding:16px;display:flex;flex-direction:column;gap:10px}
+    .infoBlock .row{display:flex;gap:12px;align-items:flex-start}
+    .infoBlock .k{width:92px;flex:0 0 92px;color:var(--primary);font-weight:950;font-size:13px}
+    .infoBlock .v{flex:1;font-size:13px;line-height:1.5;color:rgba(31,36,48,.86)}
+    .listDots{margin:0;padding-left:0;list-style:none;}
+    .listDots li{margin:0px 0}
+
+    /* ====== 상단 배너(알림) ====== */
+    .banner{
+      position:absolute;left:12px; right:12px;top: calc(10px + var(--sat));
+      background: rgba(90,90,96,.90);
+      color:#fff;border-radius: 18px;
+      box-shadow: 0 14px 30px rgba(0,0,0,.22);
+      padding:12px 14px;
+      display:flex;gap:0px;align-items:flex-start;
+      z-index:80;
+      opacity:0;transform: translateY(-10px);
+      pointer-events:none;
+      transition: opacity .22s ease, transform .22s ease;
+    }
+    .banner{font-family:"Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;}
+    .banner.show{opacity:1; transform: translateY(0); pointer-events:auto;}
+    .banner .ic{width:34px;height:34px;border-radius:12px;background: rgba(255,255,255,.16);display:grid;place-items:center;flex:0 0 34px;font-weight:1000;}
+    .banner .t1{font-weight:1000;font-size:15px}
+    .banner .t2{margin-top:2px;font-size:15px;color:rgba(255,255,255,.82);line-height:1.35}
+
+    /* ====== 락스크린(알림) ====== */
+    .pushGate{
+      height: calc(var(--vh, 1vh) * 100);
+      width:100%;
+      overflow:hidden;
+      background:
+        radial-gradient(900px 520px at 50% -10%, rgba(47,140,255,.28), transparent 55%),
+        linear-gradient(180deg, rgba(16,18,22,1), rgba(16,18,22,.92));
+      color:#fff;
+      position:relative;
+      padding: calc(26px + var(--sat)) 16px calc(18px + var(--sab));
+      display:flex;flex-direction:column;justify-content:space-between;
+    }
+    .pushTop{margin-top: calc(56px + var(--sat)); text-align:center;}
+    .pushClock{font-weight:1000;font-size:44px;letter-spacing:-.03em}
+    .pushDate{margin-top:6px;color:rgba(255,255,255,.70);font-size:20px}
+    .pushCards{display:flex;flex-direction:column;gap:10px;margin-top:34px}
+    .pushCard{
+      background: rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.14);
+      border-radius: 18px;
+      padding:12px 12px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 12px 26px rgba(0,0,0,.28);
+      cursor:pointer;
+      user-select:none;
+    }
+    .pushRow{display:flex;align-items:flex-start;gap:10px}
+    .pushAppIc{
+      width:36px;height:36px;border-radius:14px;
+      background: rgba(255,255,255,.18);
+      display:grid;place-items:center;font-weight:1000;
+      flex:0 0 36px;
+    }
+    .pushTtl{font-weight:1000;font-size:15px}
+    .pushBody{margin-top:2px;color:rgba(255,255,255,.80);font-size:15px;line-height:1.35}
+    .pushHint{margin-top:14px;color:rgba(255,255,255,.70);font-size:15px;text-align:center;}
+    .pushGate{font-family:"Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;}
+
+    /* ====== Messenger/Kakao 버튼 ====== */
+    .expWrap{
+      height:100%;
+      display:flex;
+      flex-direction:column;
+      min-height:0;
+      border:none;
+      border-radius:0;
+      overflow:hidden;
+      background:#fff;
+      position:relative;
+    }
+    .chatHeader{
+      position:sticky;top:0;z-index:20;
+      padding: calc(10px + var(--sat)) 10px 8px;
+      display:flex;gap:8px;align-items:center;
+      border-bottom:1px solid var(--stroke);
+      background: rgba(255,255,255,.96);
+      backdrop-filter: blur(10px);
+    }
+    .backBtn{
+      width:36px;height:36px;border-radius:12px;border:1px solid var(--stroke);
+      background:#fff;display:grid;place-items:center;cursor:pointer;
+      box-shadow: 0 8px 18px rgba(25,28,38,.08);
+      font-weight:1000;flex:0 0 36px;
+    }
+    .profile{display:flex;align-items:center;gap:10px;min-width:0;flex:1;}
+    .avatar{
+      width:38px;height:38px;border-radius:14px;
+      background: linear-gradient(180deg, rgba(255,255,255,.90), rgba(255,255,255,.60));
+      border:1px solid rgba(0,0,0,.08);
+      display:grid;place-items:center;
+      font-weight:1000;color:rgba(31,36,48,.75);
+      flex:0 0 38px;position:relative;overflow:hidden;
+    }
+    .avatar .statusDot{
+      position:absolute; right:5px; bottom:5px;
+      width:10px;height:10px;border-radius:999px;
+      background:#2BC48A; box-shadow: 0 0 0 2px rgba(255,255,255,.95);
+    }
+    .pbox{min-width:0}
+    .pname{margin:0;font-weight:1000;font-size:14px;letter-spacing:-.02em}
+    .psub{margin:2px 0 0;color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+    .hdrIcons{display:flex;gap:6px;align-items:center;position:relative}
+    .hico{
+      width:36px;height:36px;border-radius:12px;border:1px solid var(--stroke);
+      background:#fff;display:grid;place-items:center;
+      box-shadow: 0 8px 18px rgba(25,28,38,.06);
+      cursor:pointer;user-select:none;
+      color:rgba(31,36,48,.78);font-weight:1000;
+    }
+
+    .chatArea{
+      flex:1;
+      min-height:0;
+      overflow:auto;
+      padding:12px 10px calc(78px + var(--sab));
+      display:flex;flex-direction:column;gap:8px;
+      -webkit-overflow-scrolling: touch;
+      position:relative;
+    }
+
+    .kakaoBg{
+      background: linear-gradient(180deg, var(--kakao-bg), rgba(188,211,230,.70));
+    }
+    .kakaoBg::before{
+      content:"";
+      position:absolute; inset:0;
+      background-image:
+        radial-gradient(circle at 18px 18px, rgba(255,255,255,.20) 0 1px, transparent 2px),
+        radial-gradient(circle at 54px 52px, rgba(0,0,0,.04) 0 1px, transparent 2px);
+      background-size: 72px 72px;
+      opacity:.55;
+      pointer-events:none;
+    }
+    .kakaoBg > *{position:relative; z-index:1}
+
+    .rowMsg{display:flex;gap:7px;align-items:flex-end}
+    .rowMsg.me{justify-content:flex-end}
+    .rowMsg.other{justify-content:flex-start}
+
+    .stack{display:flex;flex-direction:column;gap:4px;max-width:78%;}
+    .stack.me{align-items:flex-end}
+    .stack.other{align-items:flex-start}
+
+    .bubble{
+      width: fit-content;
+      max-width: 100%;
+      padding:10px 12px;
+      border-radius: 18px;
+      border:1px solid rgba(0,0,0,.10);
+      line-height:1.48;
+      font-size:13px;
+      word-break:keep-all;
+      position:relative;
+      box-shadow: 0 8px 18px rgba(25,28,38,.07);
+    }
+
+    .kakao .bubble.me{
+      background: linear-gradient(180deg, var(--kakao-yellow), var(--kakao-yellow2));
+      border-color: rgba(0,0,0,.10);
+      border-top-right-radius: 14px;
+    }
+    .kakao .bubble.other{
+      background:#fff;
+      border-color: rgba(0,0,0,.08);
+      border-top-left-radius: 14px;
+    }
+    .sms .bubble.me{background: rgba(47,140,255,.14); border-color: rgba(47,140,255,.20);}
+    .sms .bubble.other{background:#fff}
+
+    .bubble.tail::after{
+      content:"";
+      position:absolute;
+      bottom:10px;
+      width:12px;height:16px;
+      background: inherit;
+      filter: drop-shadow(0 1px 0 rgba(0,0,0,.10));
+    }
+    .bubble.tail.other::after{
+      left:-9px;
+      clip-path: polygon(100% 0, 0 50%, 100% 100%);
+    }
+    .bubble.tail.me::after{
+      right:-9px;
+      clip-path: polygon(0 0, 100% 50%, 0 100%);
+    }
+
+    .metaRow{display:flex;align-items:flex-end;gap:6px;font-size:11px;color: rgba(0,0,0,.45);white-space:nowrap;}
+    .metaRow.me{flex-direction:row-reverse}
+
+    @keyframes readSlideIn {from { opacity:0; transform: translateX(8px) translateY(2px); }to{ opacity:1; transform: translateX(0) translateY(0); }}
+    @keyframes readFadeOut { from { opacity:1; } to { opacity:0; } }
+    .readCount{font-weight:1000;color: rgba(0,0,0,.55);line-height:1;animation: readSlideIn .16s ease both;}
+    .readCount.vanish{animation: readFadeOut .25s ease forwards;}
+    .linkBtn{all:unset;color:#0B63FF;text-decoration: underline;cursor:pointer;font-weight:900;}
+    @keyframes popIn{from{opacity:0; transform: translateY(6px) scale(.98)}to{opacity:1; transform: translateY(0) scale(1)}}
+    .pop{animation: popIn .18s ease both}
+
+    /* 메시지/카톡 하단 입력창 */
+    .chatFooter{
+      position:absolute;left:0;right:0;bottom:0;
+      padding:10px 10px calc(10px + var(--sab));
+      border-top:1px solid rgba(0,0,0,.06);
+      background: rgba(255,255,255,.94);
+      backdrop-filter: blur(10px);
+      z-index:25;
+    }
+    .chatInputRow{display:flex;gap:8px;align-items:center;}
+    .chatIcon{
+      width:34px;height:34px;border-radius:12px;
+      border:1px solid rgba(0,0,0,.08);
+      background:#fff;
+      display:grid;place-items:center;
+      font-weight:1000;color:rgba(31,36,48,.70);
+      user-select:none;
+    }
+    .chatField{
+      flex:1;
+      height:38px;
+      border-radius:16px;
+      border:1px solid rgba(0,0,0,.10);
+      background:#fff;
+      padding:0 12px;
+      font-size:13px;
+      outline:none;
+    }
+    .chatField::placeholder{color:rgba(31,36,48,.40);font-weight:800;}
+    .sendBtn{
+      height:38px;min-width:56px;
+      border-radius:16px;
+      border:1px solid rgba(0,0,0,.10);
+      background:#fff;
+      font-weight:1000;
+      cursor:not-allowed;
+      opacity:.70;
+      user-select:none;
+    }
+    .kakaoFooter .sendBtn{
+      background: linear-gradient(180deg, var(--kakao-yellow), var(--kakao-yellow2));
+      border-color: rgba(0,0,0,.10);
+      color: rgba(0,0,0,.78);
+      opacity:1;
+    }
+
+    /* ====== 퀴즈 팝업 ====== */
+    .overlay{
+      position:absolute; inset:0;
+      background: rgba(0,0,0,.44);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:16px;
+      z-index:90;
+    }
+    .overlay.show{display:flex}
+    .modal{
+      width:min(520px, 100%);
+      background:#fff;
+      border-radius: 22px;
+      border:1px solid rgba(255,255,255,.35);
+      box-shadow: 0 18px 60px rgba(0,0,0,.26);
+      overflow:hidden;
+    }
+    .modalHead{
+      padding:14px 14px 12px;
+      border-bottom:1px solid var(--stroke);
+      display:flex;justify-content:space-between;align-items:center;
+      background: rgba(255,255,255,.92);
+      backdrop-filter: blur(10px);
+    }
+    .modalHead .ttl{font-weight:1000;letter-spacing:-.02em}
+    .modalBody{padding:14px}
+    .qPrompt{margin:0 0 10px;font-weight:1000;letter-spacing:-.02em;line-height:1.35}
+    .choices{display:flex;flex-direction:column;gap:8px}
+    .choice{
+      padding:12px 12px;border-radius:16px;
+      border:1px solid var(--stroke);
+      background:#fff;cursor:pointer;
+      font-weight:950;font-size:13px;text-align:left;
+      transition: transform .06s ease, background .12s ease, border-color .12s ease;
+    }
+    .choice:active{transform:scale(.99)}
+    .fb{
+      display:none;
+      padding:14px 14px 16px;
+      border-top:1px solid var(--stroke);
+      background: rgba(47,140,255,.08);
+      color: rgba(31,36,48,.92);
+      font-size:14px;
+      line-height:1.55;
+    }
+    .fb.show{display:block}
+    .fb .big{font-weight:1000;margin-bottom:6px;font-size:15px}
+
+    .quizNextBtn{
+      all: unset;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 800;
+      padding: 6px 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(31,36,48,.14);
+      background: #fff;
+      cursor: pointer;
+      user-select: none;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .quizNextBtn.on{
+  opacity: 1;
+  pointer-events: auto;
+  background: #2F8CFF;
+  border-color: rgba(47,140,255,.35);
+  color: #fff;
+  font-weight: 1000;
+  box-shadow: 0 10px 18px rgba(47,140,255,.25);
+}
+
+.quizNextBtn:disabled{
+  opacity: .35;
+  pointer-events: none;
+  background:#fff;
+  color:rgba(31,36,48,.55);
+  font-weight:800;
+  box-shadow:none;
+}
+
+    /* ====== (요청) 퀴즈 피드백 아래 why 현출 ====== */
+    .fb .why{
+      margin-top:10px;
+      font-size:13px;
+      color:rgba(31,36,48,.78);
+      line-height:1.55;
+      padding-top:10px;
+      border-top:1px dashed rgba(31,36,48,.18);
+    }
+    .fb .why b{ font-weight:1000; }
+
+    /* ====== 예방수칙 + 공유 ====== */
+    .slider{display:flex;gap:10px;overflow:hidden;position:relative}
+    .slideTrack{display:flex;transition: transform .25s ease;will-change: transform}
+    .slide{width: calc(100vw - 24px);max-width: 560px;flex:0 0 auto;padding:16px}
+    .dots{display:flex;justify-content:center;gap:8px;margin-top:10px}
+    .dot{width:8px;height:8px;border-radius:999px;background: rgba(31,36,48,.18)}
+    .dot.on{background: var(--primary)}
+    .reportWrap{max-width:560px;margin:0 auto}
+
+    /* ====== (요청) 홈 상단(빨간박스 영역)만 배경 이미지 ====== */
+    .homeHeroText{
+      border-radius:16px;
+      overflow:hidden;
+      position:relative;
+      padding:10px 16px; /* ✅ 살짝 정리 */
+      min-height: clamp(200px, 60vw, 280px);
+    }
+    .homeHeroText.hasBg::before{
+      content:"";
+      position:absolute; inset:0;
+      background-image: var(--home-hero-bg, none);
+      background-size: 80% auto;
+      background-repeat: no-repeat;
+      background-position: center;
+      opacity: .22;
+      pointer-events:none;
+}
+    .homeHeroText > *{ position:relative; z-index:1; }
+
+    .guidePh{
+      height:160px;
+      border-radius:16px;
+      border:1px solid rgba(0,0,0,.06);
+      background:
+        radial-gradient(600px 220px at 20% 0%, rgba(47,140,255,.22), transparent 55%),
+        linear-gradient(180deg, rgba(31,36,48,.03), rgba(31,36,48,.01));
+      display:flex;flex-direction:column;justify-content:center;align-items:center;
+      gap:8px;
+      text-align:center;
+      padding:16px;
+      overflow:hidden;
+    }
+    .guidePh img{width:100%;height:100%;object-fit:contain;border-radius:14px;}
+    .guidePh .big{font-weight:1000;letter-spacing:-.02em}
+    .guidePh .small{font-size:12.5px;color:rgba(31,36,48,.70);line-height:1.45}
+
+    /* ====== 전화형(전체화면) ====== */
+    .callIncoming{
+      height: calc(var(--vh, 1vh) * 100);
+      display:flex;flex-direction:column;justify-content:space-between;
+      padding: calc(18px + var(--sat)) 16px calc(22px + var(--sab));
+      background:
+        radial-gradient(900px 700px at 50% -20%, rgba(47,140,255,.38), transparent 60%),
+        linear-gradient(180deg, rgba(20,24,30,1), rgba(20,24,30,.86));
+      color:#fff;overflow:hidden;position:relative;
+    }
+    .callTopInfo{margin-top:46px;text-align:center;}
+    .callTopInfo .name{margin:0;font-weight:1500 !important;font-size:22px;letter-spacing:-.02em}
+    .callTopInfo .num{margin:10px 0 0;color:rgba(255,255,255,.78);font-size:13px}
+    .callHint{text-align:center;color:rgba(255,255,255,.70);font-size:12px;margin-top:10px;}
+    .callActions{display:grid;grid-template-columns: 1fr 1fr;gap:12px;}
+    .callBtn{border:none;padding:14px 12px;border-radius: 18px;font-weight:1000;cursor:pointer;color:#fff;font-size:14px;}
+    .callAccept{background: linear-gradient(180deg, rgba(43,196,138,1), rgba(20,160,107,1))}
+    .callReject{background: linear-gradient(180deg, rgba(255,107,107,1), rgba(220,73,73,1))}
+
+    .callInPre{
+      height: calc(var(--vh, 1vh) * 100);
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      background: linear-gradient(180deg, rgba(16,18,22,1), rgba(16,18,22,.92));
+      color:#fff;
+      position:relative;
+    }
+    .callInPre .who{font-weight:1000;font-size:18px;letter-spacing:-.02em}
+    .callInPre .timer{margin-top:10px;color:rgba(255,255,255,.76);font-size:13px}
+    .wave{margin-top:22px;display:flex;gap:6px;align-items:flex-end;height:44px;opacity:.85;}
+    .bar{width:6px;border-radius:999px;background: rgba(255,255,255,.70);animation: w 0.55s ease-in-out infinite alternate;}
+    .bar:nth-child(2){animation-duration:.45s}
+    .bar:nth-child(3){animation-duration:.62s}
+    .bar:nth-child(4){animation-duration:.39s}
+    .bar:nth-child(5){animation-duration:.58s}
+    @keyframes w { from{height:10px} to{height:44px} }
+
+    /* 전화 화면 전체 폰트 */
+    .callIncoming, .callInPre{
+      font-family: "Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif !important;
+      letter-spacing: -0.02em;
+    }
+    /* 발신자 이름 글씨체 */
+    .callTopInfo .name{ font-size:24px !important; font-weight:1000; }
+    /* 번호 표시 글씨체 */
+    .callTopInfo .num{ font-size:30px !important; color:rgba(255,255,255,.82) !important; }
+    /* “전화가 울립니다…” */
+    .callHint{ font-size:13px !important; }
+
+    /* ====== 결과 ====== */
+    .resultWrap{max-width:560px;margin:0 auto}
+    .ringWrap{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:8px 0 2px;}
+    .ringSvgWrap{width:160px;height:160px;display:grid;place-items:center;position:relative;}
+    .ringCenter{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:2px;}
+    .ringCenter .n{font-size:34px;font-weight:1000;letter-spacing:-.03em}
+    .badgeType{
+      display:inline-block;
+      padding:8px 10px;border-radius:999px;
+      border:1px solid rgba(151,71,255,.18);
+      font-weight:1000;font-size:12px;
+      text-align:center;width: fit-content;margin: 0 auto;
+    }
+
+    .bars{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+    .barRow{display:grid;grid-template-columns: 112px 1fr 42px;gap:10px;align-items:center;}
+    .barRow .k{font-weight:1000;font-size:12.5px;color:rgba(31,36,48,.80)}
+    .barTrack{height:12px;border-radius:999px;background: rgba(31,36,48,.10);overflow:hidden;border:1px solid rgba(0,0,0,.06);}
+    .barFill{height:100%;width: calc(var(--v)*1%);background: var(--bar-color, var(--primary));border-radius:999px;}
+    .barRow .v{font-weight:1000;font-size:12px;color:rgba(31,36,48,.70);text-align:right}
+
+    .plainList{margin-top:12px;color:rgba(31,36,48,.80);font-size:13px;line-height:1.6;}
+    .plainList .ttl{font-weight:1000;color:rgba(31,36,48,.92);margin-bottom:6px}
+    .pill{
+      display:inline-block;
+      padding:6px 10px;border-radius:999px;
+      border:1px solid rgba(0,0,0,.08);
+      background: rgba(31,36,48,.04);
+      font-weight:900;
+      font-size:12px;
+      margin:4px 6px 0 0;
+    }
+
+    /* ====== 메뉴 ====== */
+    .menuList{display:flex;flex-direction:column;gap:10px;}
+
+    /* ====== (요청) 대화 중 공문/이미지 표시 ====== */
+    .imgCard{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+    .imgCard .ph{
+      width:260px;
+      max-width:100%;
+      height:160px;
+      border-radius:14px;
+      border:1px solid rgba(0,0,0,.10);
+      background: linear-gradient(180deg, rgba(31,36,48,.04), rgba(31,36,48,.02));
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:950;
+      color:rgba(31,36,48,.55);
+      text-align:center;
+      padding:12px;
+    }
+    .imgCard img{
+      width:260px;
+      max-width:100%;
+      height:auto;
+      border-radius:14px;
+      border:1px solid rgba(0,0,0,.08);
+      display:block;
+    }
+    .imgCard .cap{
+      font-size:12.5px;
+      color:rgba(31,36,48,.70);
+      line-height:1.45;
+    }
+
+    /* ====== (요청) 만든이(크레딧) 오버레이 ====== */
+    .creditsStage{
+      height:70vh;
+      background:#fff;
+      color:#fff;
+      color:rgba(31,36,48,.82);
+      border-radius:16px;
+      overflow:hidden;
+      position:relative;
+      border:none;
+    }
+    .creditsRoll{
+      position:absolute;
+      left:0; right:0;
+      top:100%;
+      bottom:auto;
+      bottom:-120%;
+      padding:24px 18px 60px;
+      text-align:center;
+      line-height:1.8;
+      font-weight:900;
+      letter-spacing:-.02em;
+      animation: creditsRoll 15s linear forwards;
+    }
+    .creditsRoll .small{
+      font-weight:800;
+      color:rgba(31,36,48,.55);
+      font-size:13px;
+    }
+    @keyframes creditsRoll{
+      from{ transform: translateY(0); }
+      to{ transform: translateY(calc(-100% - 70vh)); }
+    }
+
+.pushCard{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+
+.pushBodyOnly{
+  font-weight:1000;
+  font-size: calc(15px + var(--fontUp));
+  color: rgba(255,255,255,.85);
+  line-height:1.35;
+  padding: 6px 10px;
+}
+
+#quizOverlay.show{ pointer-events:none; }
+
+/* ✅ 대신 퀴즈 박스(modal)만 터치 가능 */
+
+#quizOverlay.show .modal{ pointer-events:auto; }
+
+.guidePh{
+  height:160px;
+  border-radius:16px;
+  border:1px solid rgba(0,0,0,.06);
+
+  background:#fff;              /* ✅ 하늘색/그라데이션 제거 */
+  padding:0;                    /* ✅ 이미지가 꽉 차게 */
+  overflow:hidden;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.guidePh img{
+  width:100%;
+  height:100%;
+  object-fit:contain;           /* ✅ 잘림 방지(전체가 다 보임) */
+  border-radius:14px;
+  background:#fff;              /* ✅ 비율 남는 부분도 흰색 */
+}
+
+/* ====== 퀴즈 시트 접기/펼치기 ====== */
+.overlay.sheet{ --sheet-peek: 58px; } /* 접혔을 때 위로 남길 높이(헤더 정도) */
+
+.overlay.sheet .modal{
+  transition: transform .22s ease;
+  will-change: transform;
+}
+
+/* 접히면 어두운 딤 제거(원하면 지우지 마세요) */
+.overlay.sheet.collapsed{ background: transparent; }
+
+/* 접힌 상태: 아래로 내려가서 헤더만 보이게 */
+.overlay.sheet.collapsed .modal{
+  transform: translateY(calc(100% - var(--sheet-peek)));
+}
+
+/* 가운데 화살표 버튼 */
+.modalHead{ position:relative; }
+
+.sheetToggle{
+  all: unset;
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform: translate(-50%, -50%);
+  width:34px;
+  height:34px;
+  border-radius:999px;
+  border:1px solid rgba(31,36,48,.14);
+  background:#fff;
+  display:grid;
+  place-items:center;
+  box-shadow: 0 8px 18px rgba(25,28,38,.10);
+  cursor:pointer;
+  user-select:none;
+}
+
+.sheetToggle .chev{
+  width:8px;
+  height:8px;
+  border-right:2px solid rgba(31,36,48,.55);
+  border-bottom:2px solid rgba(31,36,48,.55);
+  transform: rotate(45deg); /* ↓ */
+  margin-top:-2px;
+}
+
+/* 접히면 ↑ 방향으로 */
+.overlay.sheet.collapsed .sheetToggle .chev{
+  transform: rotate(-135deg); /* ↑ */
+  margin-top:2px;
+}
+
+  </style>
+
+<style id="polcare-request-patch-style">
+  /* ✅ 전 기종/화면 대응 기본 */
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    -webkit-text-size-adjust: 100%;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    touch-action: manipulation; /* 더블탭 확대 억제(보조) */
+  }
+
+  /* ✅ “폴케어” 눌림 효과(클래스 토글) */
+  .polcare-brand-press {
+    transform: scale(0.98);
+    opacity: 0.85;
+  }
+
+  /* ✅ 폴케어(로고) 클릭 가능 표시 */
+  #brandHome{
+    cursor:pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* ✅ HTML 복사 억제(완전 차단 X) */
+  body {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  button, input, textarea, select {
+    -webkit-user-select: auto;
+    user-select: auto;
+  }
+
+</style>
+
+
+
+</head>
+
+<body>
+  <div class="phone" aria-label="피싱 범죄예방 모의체험">
+    <div id="banner" class="banner" role="button" aria-label="알림/토스트">
+      <div>
+        <div class="t1" id="bannerTitle">알림</div>
+        <div class="t2" id="bannerBody">내용</div>
+      </div>
+    </div>
+
+    <div class="app" id="app">
+      <header>
+        <div class="brand">
+          <div class="logo" id="brandHome" role="button" aria-label="홈으로 이동">
+            <span class="brandStrong">폴케어</span><span class="brandLight">경찰과 함께하는 피싱 범죄 모의체험</span>
+          </div>
+          <div class="subtitle" id="brandSub"></div>
+        </div>
+        <div class="iconbtn" id="menuBtn" title="메뉴">
+          <div class="burger"><span></span></div>
+        </div>
+      </header>
+
+      <main id="main"></main>
+
+      <div class="overlay sheet" id="quizOverlay" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-label="문제">
+          <div class="modalHead">
+            <div class="ttl">문제</div>
+<button type="button" class="sheetToggle" id="quizSheetToggle"
+          aria-label="문제창 접기/펼치기" aria-expanded="true">
+    <span class="chev"></span>
+  </button>
+            <button type="button" class="quizNextBtn" id="quizNextBtn" disabled>다음</button>
+          </div>
+          <div class="modalBody">
+            <p class="qPrompt" id="qPrompt"></p>
+            <div class="choices" id="qChoices"></div>
+          </div>
+          <div class="fb" id="qFeedback">
+            <div class="big" id="fbTitle">피드백</div>
+            <div id="fbBody"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="overlay" id="menuOverlay" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-label="메뉴">
+          <div class="modalHead">
+            <div class="ttl">메뉴</div>
+            <button class="iconbtn" id="menuClose" title="닫기" aria-label="닫기">✕</button>
+          </div>
+          <div class="modalBody">
+            <div class="menuList">
+              <button class="btn ghost block" id="goHomeMenu">홈</button>
+              <button class="btn primary block" id="goExpMenu">체험하기</button>
+              <button class="btn ghost block" id="goReportMenu">피싱 범죄예방수칙</button>
+              <button class="btn ghost block" id="shareMenu">공유하기</button>
+              <button class="btn ghost block" id="creditsmenu">만든이</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ✅ creditsOverlay는 menuOverlay 밖으로 분리(그래야 메뉴를 닫아도 크레딧이 보임) -->
+      <div class="overlay" id="creditsOverlay" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-label="만든이">
+          <div class="modalHead">
+            <div class="ttl">만든이</div>
+            <button class="iconbtn" id="creditsClose" title="닫기" aria-label="닫기">✕</button>
+          </div>
+          <div class="modalBody">
+            <div class="creditsStage">
+              <div class="creditsRoll" id="creditsRoll">
+                <!-- JS에서 채워집니다 -->
+              </div>
+            </div>
+            <div style="margin-top:10px;color:rgba(31,36,48,.70);font-size:12.5px;line-height:1.5;text-align:center;">
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+<script>
+if(!String.prototype.replaceAll){
+  String.prototype.replaceAll = function(search, replacement){
+    return this.split(search).join(replacement);
+  };
+}
+
+window.CASES = window.CASES || [];
+window.SCENARIOS = window.SCENARIOS || {};
+window.DATA_CATEGORIES = window.DATA_CATEGORIES || {};
+
+function V(verify=0, link=0, otp=0, urgency=0, money=0, context=0){
+  return { verify, link, otp, urgency, money, context };
+}
+
+/* === 링크칸/표시 === */
+const CALLER_NAME_OVERRIDE = "";
+const CALLER_NUMBER_OVERRIDE = "";
+
+/* 배경이미지 주소 */
+const HOME_HERO_BG_URL = "https://koreapolkim.github.io/pict/police.png";
+
+/* 안내메시지 : 3개 자동슬라이드(5초) + 클릭 시 새창 링크
+   ✅ (요청) img가 비어있으면 href를 이미지로 자동 사용(미리보기 가능)
+*/
+const HOME_GUIDE_SLIDES = [
+  { img: "https://koreapolkim.github.io/inf/an.jpg", href: "https://koreapolkim.github.io/inf/an.jpg" },
+  { img: "https://koreapolkim.github.io/inf/knpa.jpg",  href: "https://www.counterscam112.go.kr/" },
+];
+
+/* 소리 링크 */
+const SOUND_NOTIFY_URL = "https://koreapolkim.github.io/p-m/in.mp3";
+const SOUND_RINGTONE_URL = "https://koreapolkim.github.io/p-m/mu.mp3";
+const SOUND_CALL_VOICE_URL = "";
+
+/*** * iOS Safari 100vh 보정 ***/
+function setVh(){
+  const vh = window.innerHeight * 0.01;
+  document.documentElement.style.setProperty('--vh', vh + 'px');
+}
+setVh();
+window.addEventListener('resize', setVh);
+window.addEventListener('orientationchange', setVh);
+
+/*** 연결 ***/
+const getCASES = ()=> Array.isArray(window.CASES) ? window.CASES : [];
+const getSCENARIOS = ()=> (window.SCENARIOS && typeof window.SCENARIOS === "object") ? window.SCENARIOS : {};
+const getCATS = ()=> (window.DATA_CATEGORIES && typeof window.DATA_CATEGORIES === "object") ? window.DATA_CATEGORIES : {};
+
+/*** 체험 실행 중단 ***/
+function makeRun(){
+  return {
+    aborted:false,
+    timeouts:new Set(),
+    intervals:new Set(),
+    audios:new Set(),
+    audioCtxs:new Set(),
+    abort(){
+      if(this.aborted) return;
+      this.aborted = true;
+      for(const t of this.timeouts) clearTimeout(t);
+      for(const i of this.intervals) clearInterval(i);
+      this.timeouts.clear(); this.intervals.clear();
+      for(const a of this.audios){ try{a.pause(); a.currentTime=0;}catch(e){} }
+      this.audios.clear();
+      for(const c of this.audioCtxs){ try{c.close()}catch(e){} }
+      this.audioCtxs.clear();
+      try{ document.getElementById("quizOverlay").classList.remove("show"); }catch(e){}
+    },
+    setTimeout(fn, ms){
+      const id = setTimeout(()=>{ this.timeouts.delete(id); if(!this.aborted) fn(); }, ms);
+      this.timeouts.add(id); return id;
+    },
+    setInterval(fn, ms){
+      const id = setInterval(()=>{ if(this.aborted) return; fn(); }, ms);
+      this.intervals.add(id); return id;
+    }
+  };
+}
+
+const state = {
+  route:{ name:"home", params:{} },
+  history:[],
+  analytics:{ sessions:[], totals:null },
+  profile:{ gender:null, age:null, name:"", workplace:"" },
+  pendingExp:null,
+  run:null
+};
+
+const DIMENSIONS = [
+  { key:"verify", label:"검증/콜백", tip:"기존 번호·공식 채널로 재확인" },
+  { key:"link",   label:"링크/도메인", tip:"링크 대신 공식 앱/웹 직접 접속" },
+  { key:"otp",    label:"인증/개인정보", tip:"OTP·신분증·비밀번호는 공유 금지" },
+  { key:"urgency",label:"긴급/압박", tip:"급함·비밀·재촉은 멈춤 신호" },
+  { key:"money",  label:"금전/지시", tip:"송금·구매·대리결제는 절차 확인" },
+  { key:"context",label:"맥락 점검", tip:"평소 말투/요청 패턴 어긋남 체크" },
+];
+
+function resetTotals(){
+  state.analytics.totals = Object.fromEntries(DIMENSIONS.map(d=>[d.key, {sum:0, max:0}]));
+}
+resetTotals();
+
+const appEl = document.getElementById("app");
+const main = document.getElementById("main");
+
+/*** 전체화면 모드 ***/
+function applyLayoutMode(routeName){
+  const full = (routeName === "push_gate" || routeName === "exp_messenger" || routeName === "exp_call");
+  appEl.classList.toggle("fullscreen", full);
+}
+
+/*** 라우팅 ***/
+function isExperienceRoute(name){
+  return (name === "exp_messenger" || name === "exp_call" || name === "push_gate");
+}
+function go(name, params = {}, replace = false){
+  const leavingExp = isExperienceRoute(state.route.name) && !isExperienceRoute(name);
+  if(leavingExp && state.run){ state.run.abort(); state.run = null; }
+
+  if(!replace) state.history.push({...state.route});
+  state.route = { name, params };
+  applyLayoutMode(name);
+  render();
+  main.scrollTop = 0;
+}
+function backToCaseList(){
+  if(state.run){ state.run.abort(); state.run=null; }
+  go("case_list",{},true);
+}
+function back(){
+  const prev = state.history.pop();
+  if(prev){
+    if(isExperienceRoute(state.route.name) && state.run){ state.run.abort(); state.run=null; }
+    state.route = prev;
+    applyLayoutMode(prev.name);
+    render();
+    main.scrollTop = 0;
+  }else{
+    go("case_list", {}, true);
+  }
+}
+
+/*** 배너 ***/
+const banner = document.getElementById("banner");
+const bannerTitle = document.getElementById("bannerTitle");
+const bannerBody = document.getElementById("bannerBody");
+let bannerTimer = null;
+let stickyNotifyTimer = null;
+
+function clearStickyNotifyTimer(){
+  if(stickyNotifyTimer){ clearTimeout(stickyNotifyTimer); stickyNotifyTimer = null; }
+}
+
+/* 링크된 사운드 재생 */
+function playUrlAudio(url, {loop=false, volume=1} = {}, run){
+  try{
+    if(!url || !String(url).trim()) return null;
+    const a = new Audio(url);
+    a.loop = !!loop;
+    a.volume = Math.max(0, Math.min(1, volume));
+    run?.audios?.add(a);
+    a.play().catch(()=>{});
+    return a;
+  }catch(e){ return null; }
+}
+
+/* 알림 소리 */
+function loudNotify(run){
+  if(SOUND_NOTIFY_URL && String(SOUND_NOTIFY_URL).trim()){
+    playUrlAudio(SOUND_NOTIFY_URL, {loop:false, volume:1}, run);
+    return;
+  }
+  try{
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    run?.audioCtxs?.add(ctx);
+
+    const now = ctx.currentTime;
+    const o1 = ctx.createOscillator();
+    const o2 = ctx.createOscillator();
+    const g = ctx.createGain();
+
+    o1.type = "triangle";
+    o2.type = "sine";
+    o1.frequency.setValueAtTime(880, now);
+    o2.frequency.setValueAtTime(1320, now);
+
+    g.gain.setValueAtTime(0.0001, now);
+    g.gain.exponentialRampToValueAtTime(0.18, now + 0.015);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
+
+    g.gain.setValueAtTime(0.0001, now + 0.18);
+    g.gain.exponentialRampToValueAtTime(0.16, now + 0.195);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + 0.36);
+
+    o1.connect(g); o2.connect(g); g.connect(ctx.destination);
+    o1.start(now); o2.start(now);
+    o1.stop(now + 0.40); o2.stop(now + 0.40);
+
+    setTimeout(()=>{ try{ctx.close()}catch(e){} }, 500);
+  }catch(e){}
+}
+
+function showBanner(title, body, sticky=false){
+  bannerTitle.textContent = title || "알림";
+  bannerBody.textContent = body || "";
+  banner.classList.add("show");
+  clearTimeout(bannerTimer);
+  if(!sticky){
+    bannerTimer = setTimeout(()=> banner.classList.remove("show"), 1800);
+  }
+}
+function hideBanner(){
+  clearTimeout(bannerTimer);
+  banner.classList.remove("show");
+}
+
+/*** 유틸 ***/
+function escapeHtml(str){
+  return (str ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;");
+}
+function catChip(catKey){
+  const c = getCATS()[catKey];
+  const cls = c?.chip || "blue";
+  const label = c?.label || catKey;
+  return `<span class="chip ${cls}">${escapeHtml(label)}</span>`;
+}
+function nowTime(){
+  return new Date().toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"});
+}
+function nowClock(){
+  return new Date().toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit", hour12:false});
+}
+function nowDateLabel(){
+  return new Date().toLocaleDateString("ko-KR",{month:"long", day:"numeric", weekday:"long"});
+}
+function isLikelyUrl(text){ return /https?:\/\/|example\.|www\./i.test(text || ""); }
+function makeClickableText(text){
+  const t = String(text||"");
+  if(!isLikelyUrl(t)) return escapeHtml(t);
+  const m = t.match(/(https?:\/\/[^\s]+|example\.[^\s]+)/i);
+  if(!m) return escapeHtml(t);
+  const url = m[1];
+  const before = escapeHtml(t.slice(0, m.index));
+  const after = escapeHtml(t.slice(m.index + url.length));
+  return `${before}<button class="linkBtn" data-url="${escapeHtml(url)}">${escapeHtml(url)}</button>${after}`;
+}
+function toNaturalReply(choiceText){
+  const t = String(choiceText||"").trim();
+  if(!t) return "일단 공식 채널로 다시 확인해볼게요.";
+  if(/콜백|기존|대표번호|내부 채널|끊고/.test(t)) return "잠깐만요. 끊고 공식 번호로 다시 전화해서 확인할게요.";
+  if(/무시|삭제|차단/.test(t)) return "이건 바로 차단하고, 필요하면 공식 경로로 확인할게요.";
+  if(/링크|클릭/.test(t)) return "링크는 누르지 않고 공식 앱이나 홈페이지에서 직접 확인해볼게요.";
+  if(/신고/.test(t)) return "캡처해두고 바로 신고부터 할게요.";
+  if(/송금|결제|입금|돈|구매/.test(t)) return "금전 요구는 진행 안 하고, 먼저 사실 확인부터 할게요.";
+  if(/인증|OTP|비밀번호|신분증/.test(t)) return "인증번호나 개인정보는 절대 공유하지 않을게요.";
+  return t.endsWith("요") ? t : (t + " 할게요.");
+}
+
+/*** 공유 ***/
+function prevention3Lines(){
+  return [
+    "1) 급하면 멈추기: 링크/인증/송금 요구는 일단 정지",
+    "2) 공식 경로 확인: 앱/웹 직접 접속 또는 대표번호 콜백",
+    "3) 기록·차단·신고: 캡처/번호/계좌·링크 확보 후 신고"
+  ].join("\n");
+}
+async function shareApp(message){
+  const url = location.href;
+  const title = "피싱 예방 체험";
+  const base = message || "피싱 예방 체험 같이 해봐요.";
+  const text = `${base}\n\n[피싱 범죄예방수칙 요약]\n${prevention3Lines()}`;
+  try{
+    if(navigator.share){
+      await navigator.share({ title, text, url });
+      return true;
+    }
+  }catch(e){ return false; }
+  try{
+    await navigator.clipboard.writeText(`${text}\n\n${url}`);
+    showBanner("공유", "링크가 클립보드에 복사됐어요.", false);
+    return true;
+  }catch(e){
+    showBanner("공유", "이 기기에서는 자동 공유가 어려워요. 주소를 직접 복사해 주세요.", false);
+    return false;
+  }
+}
+
+/*** 메뉴 ***/
+const menuOverlay = document.getElementById("menuOverlay");
+document.getElementById("menuBtn").onclick = ()=> menuOverlay.classList.add("show");
+document.getElementById("menuClose").onclick = ()=> menuOverlay.classList.remove("show");
+menuOverlay.addEventListener("click", (e)=>{ if(e.target===menuOverlay) menuOverlay.classList.remove("show"); });
+
+document.getElementById("goHomeMenu").onclick = ()=>{
+  menuOverlay.classList.remove("show");
+  go("home",{},true);
+};
+document.getElementById("goExpMenu").onclick = ()=>{
+  menuOverlay.classList.remove("show");
+  go("case_list",{},true);
+};
+document.getElementById("goReportMenu").onclick = ()=>{
+  menuOverlay.classList.remove("show");
+  go("report",{},true);
+};
+document.getElementById("shareMenu").onclick = async ()=>{
+  menuOverlay.classList.remove("show");
+  await shareApp("가족/지인에게 공유할게요. 이 링크로 같이 체험해봐요!");
+};
+
+/*** ✅ 상단 '폴케어' 로고 클릭 → 홈으로 ***/
+(function(){
+  const brandHome = document.getElementById("brandHome");
+  if(!brandHome) return;
+
+  // 눌림 효과
+  const pressOn  = ()=> brandHome.classList.add("polcare-brand-press");
+  const pressOff = ()=> brandHome.classList.remove("polcare-brand-press");
+
+  brandHome.addEventListener("mousedown", pressOn);
+  brandHome.addEventListener("mouseup", pressOff);
+  brandHome.addEventListener("mouseleave", pressOff);
+  brandHome.addEventListener("touchstart", pressOn, {passive:true});
+  brandHome.addEventListener("touchend", pressOff, {passive:true});
+  brandHome.addEventListener("touchcancel", pressOff, {passive:true});
+
+  // 홈 이동
+  brandHome.addEventListener("click", (e)=>{
+    e.preventDefault();
+    e.stopPropagation();
+
+    // 열려있는 오버레이 닫기(있으면)
+    try{ document.getElementById("menuOverlay")?.classList.remove("show"); }catch(_){}
+    try{ document.getElementById("creditsOverlay")?.classList.remove("show"); }catch(_){}
+    try{ hideBanner(); }catch(_){}
+
+    go("home", {}, true);
+  });
+})();
+
+
+
+/*** ✅ 만든이(크레딧) ***/
+(function(){
+  const creditsOverlay = document.getElementById("creditsOverlay");
+  const creditsClose = document.getElementById("creditsClose");
+  const creditsRoll = document.getElementById("creditsRoll");
+
+  const creditsLines = [
+    "폴케어(Pol_Care)",
+    "<span class='small'>피싱 범죄예방 모의체험</span>",
+    "",
+    "기획 / 제작",
+    "<span class='small'>전남경찰청 영암경찰서 범죄예방대응과</span>",
+    "",
+    "디자인",
+    "<span class='small'>김진영</span>",
+    "",
+    "시나리오",
+    "<span class='small'>김진영</span>",
+    "",
+    "Special Thanks",
+    "<span class='small'>지역사회 협력</span>",
+  ];
+
+  function openCredits(){
+    // 내용 채우기
+    creditsRoll.innerHTML = creditsLines.map(l=>`<div>${l}</div>`).join("");
+    // 애니메이션 리셋
+    creditsRoll.style.animation = "none";
+    void creditsRoll.offsetHeight;
+    creditsRoll.style.animation = "";
+
+    creditsOverlay.classList.add("show");
+  }
+  function closeCredits(){
+    creditsOverlay.classList.remove("show");
+  }
+
+  creditsClose.onclick = closeCredits;
+  creditsOverlay.addEventListener("click",(e)=>{ if(e.target===creditsOverlay) closeCredits(); });
+
+  const creditsBtn = document.getElementById("creditsmenu") || document.getElementById("creditsMenu");
+  if(creditsBtn){
+    creditsBtn.onclick = ()=>{
+      menuOverlay.classList.remove("show");
+      openCredits();
+    };
+  }
+  window.openCredits = openCredits;
+})();
+
+/*** 퀴즈 팝업 ***/
+const quizOverlay = document.getElementById("quizOverlay");
+const qPromptEl = document.getElementById("qPrompt");
+const qChoicesEl = document.getElementById("qChoices");
+const qFeedback = document.getElementById("qFeedback");
+const fbTitle = document.getElementById("fbTitle");
+const fbBody = document.getElementById("fbBody");
+
+/* ✅ 퀴즈 시트(슬라이드) 접기/펼치기 */
+const quizToggleBtn = document.getElementById("quizSheetToggle");
+let quizCollapsed = false;
+
+function setQuizCollapsed(v){
+  quizCollapsed = !!v;
+  quizOverlay.classList.toggle("collapsed", quizCollapsed);
+  if(quizToggleBtn){
+    quizToggleBtn.setAttribute("aria-expanded", String(!quizCollapsed));
+  }
+}
+
+if(quizToggleBtn){
+  quizToggleBtn.addEventListener("click", (e)=>{
+    e.preventDefault();
+    e.stopPropagation();
+    setQuizCollapsed(!quizCollapsed);
+  });
+}
+
+
+
+
+quizOverlay.addEventListener("click", (e)=>{ e.stopPropagation(); });
+
+function showQuiz(q, run){
+  return new Promise((resolve)=>{
+    if(run?.aborted) return resolve(null);
+
+    const nextBtn = document.getElementById("quizNextBtn");
+    qFeedback.classList.remove("show");
+    qPromptEl.textContent = q.prompt || "문제";
+    qChoicesEl.innerHTML = "";
+
+    if(nextBtn){
+      nextBtn.classList.remove("on");
+      nextBtn.disabled = true;
+      nextBtn.onclick = null;
+    }
+
+    let pickedResult = null;
+
+const shuffledChoices = [...(q.choices||[])];
+
+// Fisher-Yates shuffle
+for(let i=shuffledChoices.length-1; i>0; i--){
+  const j = Math.floor(Math.random() * (i+1));
+  [shuffledChoices[i], shuffledChoices[j]] = [shuffledChoices[j], shuffledChoices[i]];
+}
+
+
+    shuffledChoices.forEach((c, idx)=>{
+      const btn = document.createElement("button");
+      btn.className = "choice";
+      btn.textContent = c.text || ("선택 " + (idx+1));
+
+      btn.onclick = ()=>{
+        if(run?.aborted) return resolve(null);
+        if(pickedResult) return;
+
+        const delta = Number(c.score || 0);
+        const good = delta > 0;
+
+        fbTitle.textContent = good ? "좋아요 ✔" : "주의🚨";
+        const fbText = c.feedback || (good
+          ? "위험 신호를 잘 잡았어요. 다음으로 이어집니다."
+          : "이 선택은 위험할 수 있어요. ‘멈춤 → 공식 경로 확인’이 핵심입니다.");
+
+        const whyText = c.why ? String(c.why) : "";
+        fbBody.innerHTML =
+          `${escapeHtml(fbText)}`
+          + (whyText.trim()
+              ? `<div class="why"><b>왜?</b><br>${escapeHtml(whyText)}</div>`
+              : ``);
+
+        qFeedback.classList.add("show");
+        pickedResult = { choice: c, good, delta };
+        qChoicesEl.querySelectorAll(".choice").forEach(b=> b.disabled = true);
+
+        if(nextBtn){
+          nextBtn.disabled = false;
+          nextBtn.classList.add("on");
+          nextBtn.onclick = ()=>{
+            if(run?.aborted) return resolve(null);
+            quizOverlay.classList.remove("show");
+            resolve(pickedResult);
+          };
+        }
+      };
+
+      qChoicesEl.appendChild(btn);
+    });
+
+    setQuizCollapsed(false); // ✅ 퀴즈 뜰 때는 항상 펼쳐서 시작
+    quizOverlay.classList.add("show");
+  });
+}
+
+/*** 분석 ***/
+function applyVectorToTotals(vector){
+  DIMENSIONS.forEach(d=>{
+    const v = Number(vector?.[d.key] || 0);
+    if(!Number.isFinite(v) || v === 0) return;
+    state.analytics.totals[d.key].sum += v;
+    state.analytics.totals[d.key].max += Math.abs(v);
+  });
+}
+function calcScoresFromSession(expId){
+  // 방금 끝난 해당 시나리오 세션 찾기
+  const ses = [...state.analytics.sessions].reverse().find(s => s.expId === expId);
+  const picks = ses?.picks || [];
+
+  const totalQ = picks.length;
+  const correctQ = picks.filter(p => !!p.good).length;
+
+  // ✅ 종합 안전지수: 정답률(전부 맞으면 100 / 전부 틀리면 0)
+  const overall = totalQ ? Math.round((correctQ / totalQ) * 100) : 0;
+
+  // ✅ 세부 차트(막대): 해당 차원이 "등장한 문항" 중 정답률
+  // (vector에서 해당 key가 0이 아니면 그 차원이 평가된 문항으로 간주)
+  const dims = {};
+  DIMENSIONS.forEach(d => {
+    let touched = 0;
+    let ok = 0;
+    for(const p of picks){
+      const v = Number(p.vector?.[d.key] || 0);
+      if(v !== 0){
+        touched++;
+        if(p.good) ok++;
+      }
+    }
+    // 평가 문항이 없으면 null 처리(표시를 '—'로 하고 막대는 0)
+    dims[d.key] = touched ? Math.round((ok / touched) * 100) : null;
+  });
+
+  return { overall, dims, totalQ, correctQ };
+}function startSession(expId){
+  const exp = getSCENARIOS()[expId];
+  return { expId, title: exp?.title || expId, at: Date.now(), picks:[] };
+}
+
+/*** 대화 속도 ***/
+const MESSAGE_INTERVAL_MS = 5000;
+
+/*** 읽기 유예 ***/
+const MIN_READ_MS = 1600;
+const MAX_READ_MS = 3600;
+function calcReadDelay(text){
+  const len = String(text||"").length;
+  return Math.min(MAX_READ_MS, Math.max(MIN_READ_MS, 1100 + len*22));
+}
+
+/*** 렌더 라우터 ***/
+function render(){
+  const { name, params } = state.route;
+  if(name==="home") return renderHome();
+  if(name==="case_list") return renderCaseList();
+  if(name==="case_detail") return renderCaseDetail(params.caseId);
+  if(name==="push_gate") return renderPushGate(params.expId);
+  if(name==="exp_messenger") return renderMessengerExp(params.expId);
+  if(name==="exp_call") return renderCallExp(params.expId);
+  if(name==="report") return renderReport();
+  if(name==="result") return renderResult(params);
+  return go("home",{},true);
+}
+
+/*** 홈 ***/
+let homeGuideTimer = null;
+
+function renderHome(){
+  if(homeGuideTimer){ clearInterval(homeGuideTimer); homeGuideTimer = null; }
+
+  const slidesRaw = (Array.isArray(HOME_GUIDE_SLIDES) && HOME_GUIDE_SLIDES.length > 0)
+  ? HOME_GUIDE_SLIDES
+  : [{ img:"", href:"" }];
+
+  // ✅ (요청) img가 비어있으면 href를 이미지로 자동 사용(미리보기)
+  const slides = slidesRaw.map(s=>{
+    const img = (s?.img && String(s.img).trim()) ? s.img : (s?.href || "");
+    return { img, href: s?.href || "" };
+  });
+
+  const heroBgVar = (HOME_HERO_BG_URL && String(HOME_HERO_BG_URL).trim())
+    ? `--home-hero-bg: url('${escapeHtml(HOME_HERO_BG_URL)}');`
+    : `--home-hero-bg: none;`;
+
+  main.innerHTML = `
+    <div class="card" style="padding:12px; position:relative; overflow:hidden;">
+      <div class="homeHeroText ${HOME_HERO_BG_URL && String(HOME_HERO_BG_URL).trim() ? "hasBg" : ""}"
+           style="${heroBgVar}">
+        <div style="font-weight:1000;letter-spacing:-.02em;font-size:17px;">
+          피싱 범죄는 예방이 최선입니다.</div>
+
+        <!-- ✅ (요청) 큰 카드 높이/가독성 정리 -->
+        <div style="margin-top:8px;color:var(--muted);font-size:15px;line-height:1.55;">
+          <div><b>나와 소중한 사람을 지키는 방법.</b></iv>
+          <div style="margin-top:8px;">
+            여러 유형들을 모의로 체험하고,<br>
+            ‘대응절차’와 나의 ‘안전지수’를 확인해보세요.
+          </div>
+          <div style="margin-top:10px;"><b>한번의 체험이, 평생의 피해를 막습니다.</b></div>
+        </div>
+      </div>
+
+      <div class="cta" style="margin-top:14px;">
+        <button class="btn primary block" id="goExp">체험 시작</button>
+        <button class="btn ghost block" id="goShare">공유하기</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:12px;padding:0;overflow:hidden;">
+      <div style="padding:16px 16px 0;">
+        <div style="font-weight:1000;letter-spacing:-.02em;font-size:15px;">관련 안내</div>
+      </div>
+
+      <div class="slider" style="padding:0;overflow:hidden;">
+        <div class="slideTrack" id="homeGuideTrack">
+          ${slides.map((s,i)=>`
+            <div class="slide" data-idx="${i}">
+              <div class="guidePh" style="cursor:pointer;">
+                ${
+                  (s.img && String(s.img).trim())
+                    ? `<img alt="안내 이미지 ${i+1}" src="${escapeHtml(s.img)}" />`
+                    : `<div class="big">안내 이미지 ${i+1}</div><div class="small">HOME_GUIDE_SLIDES[${i}]에 이미지 URL 또는 href 입력</div>`
+                }
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+      <div class="dots" id="homeGuideDots" style="padding-bottom:12px;"></div>
+    </div>
+  `;
+
+  document.getElementById("goExp").onclick = ()=> go("case_list",{},true);
+  document.getElementById("goShare").onclick = ()=> shareApp("나와 소중한 사람을 지키는 연습, 이 링크로 피싱 범죄 '대응절차'와 나의 '안전지수'를 체험해봐요!");
+
+  const track = document.getElementById("homeGuideTrack");
+  const dots = document.getElementById("homeGuideDots");
+  let idx = 0;
+
+  function renderDots(){
+    dots.innerHTML = slides.map((_,i)=>`<span class="dot ${i===idx?'on':''}"></span>`).join("");
+  }
+  function setIdx(i){
+  idx = Math.max(0, Math.min(slides.length-1, i));
+  const w = getSlideW();
+  syncSlideWidth(w);
+  track.style.transform = `translateX(${-idx * w}px)`;
+  renderDots();
+}
+
+  homeGuideTimer = setInterval(()=> setIdx((idx+1) % slides.length), 5000);
+
+  let startX = null;
+  track.parentElement.addEventListener("touchstart",(e)=>{ startX = e.touches[0].clientX; },{passive:true});
+  track.parentElement.addEventListener("touchend",(e)=>{
+    if(startX==null) return;
+    const endX = e.changedTouches[0].clientX;
+    const dx = endX - startX;
+    if(dx < -40) setIdx(idx+1);
+    if(dx > 40) setIdx(idx-1);
+    startX = null;
+  },{passive:true});
+
+  track.addEventListener("click",(e)=>{
+    const slideEl = e.target.closest(".slide");
+    if(!slideEl) return;
+    const i = Number(slideEl.dataset.idx || 0);
+    const href = slides?.[i]?.href || "";
+    if(href && String(href).trim()){
+      window.open(href, "_blank", "noopener,noreferrer");
+    }else{
+      showBanner("안내", "이 이미지의 새창 링크(href)가 비어있어요. HOME_GUIDE_SLIDES에 입력해 주세요.", false);
+    }
+  });
+
+  window.addEventListener("resize", ()=> setIdx(idx));
+  renderDots();
+  setIdx(0);
+}
+
+/*** 유형 리스트 ***/
+function renderCaseList(){
+  const items = getCASES();
+  main.innerHTML = `
+    <div class="caseList">
+      ${items.map(c=>`
+        <div class="card caseItem" data-case="${escapeHtml(c.id)}">
+          <div class="caseBody">
+            <div class="caseTop">
+              <div style="min-width:0;flex:1">
+                <p class="caseTitle">${escapeHtml(c.title)}</p>
+                <p class="caseSub">${escapeHtml(c.subtitle)}</p>
+              </div>
+              ${catChip(c.category)}
+            </div>
+          </div>
+        </div>
+      `).join("")}
+    </div>
+
+    <div class="cta" style="margin-top:16px;">
+      <button class="btn ghost block" id="caseListBack">뒤로</button>
+    </div>
+  `;
+
+  main.querySelectorAll("[data-case]").forEach(el=>{
+    el.onclick = ()=> go("case_detail",{ caseId: el.dataset.case });
+  });
+
+  const backBtn = document.getElementById("caseListBack");
+  if(backBtn){
+    backBtn.onclick = ()=> go("home", {}, true);
+  }
+}
+
+function renderCaseDetail(caseId){
+  const c = getCASES().find(x=>x.id===caseId);
+  if(!c) return go("case_list",{},true);
+
+  main.innerHTML = `
+    <div class="card detailHead">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
+        <div style="min-width:0;">
+          <h2>${escapeHtml(c.title)}</h2>
+          <p>${escapeHtml(c.subtitle)}</p>
+        </div>
+        <div>${catChip(c.category)}</div>
+      </div>
+
+      <div class="cta">
+        <button class="btn primary block" id="startExp">체험 하러 가기</button>
+        <button class="btn ghost block" id="goBack">뒤로</button>
+      </div>
+    </div>
+
+    <div class="card infoBlock" style="margin-top:12px;">
+      <div class="row">
+        <div class="k">주요피해대상</div>
+        <div class="v">
+          <ul class="listDots">
+            ${(c.info?.victims||[]).map(v=>`<li>${escapeHtml(v)}</li>`).join("")}
+          </ul>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="k">키워드</div>
+        <div class="v">
+          ${(c.info?.keywords||[]).map(k=>`<span class="kwWord">${escapeHtml(k)}</span>`).join("")}
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="k">요약</div>
+        <div class="v">${escapeHtml(c.info?.summary||"")}</div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("goBack").onclick = ()=> back();
+  document.getElementById("startExp").onclick = ()=>{
+    const exp = getSCENARIOS()[c.experienceId];
+    if(!exp) return;
+
+    resetTotals();
+
+    if(exp.type==="messenger"){
+      state.pendingExp = { expId:c.experienceId, type:"messenger" };
+      loudNotify(state.run);
+      showBanner("알림", "메시지가 도착했습니다.", false);
+
+      clearStickyNotifyTimer();
+      stickyNotifyTimer = setTimeout(()=>{
+        const kind = exp.ui === "kakao" ? "카톡" : (exp.ui==="sms" ? "문자메시지" : "메시지");
+        loudNotify(state.run);
+        showBanner("알림", `아래 알림을 눌러 내용을 확인하세요.`, true);
+      }, 2000);
+
+      go("push_gate",{ expId:c.experienceId }, false);
+      return;
+    }
+
+    if(exp.type==="call"){
+      state.pendingExp = { expId:c.experienceId, type:"call" };
+      go("exp_call",{ expId:c.experienceId }, false);
+      return;
+    }
+  };
+}
+
+/*** 푸시 게이트 ***/
+function renderPushGate(expId){
+  const exp = getSCENARIOS()[expId];
+  if(!exp || exp.type!=="messenger") return go("case_list",{},true);
+
+  const kind = exp.ui === "kakao" ? "카톡" : (exp.ui==="sms" ? "문자메시지" : "메시지");
+  const appIc = exp.ui === "kakao" ? "K" : (exp.ui==="sms" ? "S" : "M");
+
+  // ✅ title이 "" 이어도 "알림"으로 강제 대체하지 않도록 처리
+  const ttl = (exp.notify && Object.prototype.hasOwnProperty.call(exp.notify, "title")) ? (exp.notify.title ?? "") : "";
+  const body = (exp.notify && Object.prototype.hasOwnProperty.call(exp.notify, "body")) ? (exp.notify.body ?? "") : `${kind} 알림이 도착했어요.`;
+
+  main.innerHTML = `
+    <div class="pushGate">
+      <div class="pushTop">
+        <div class="pushClock">${escapeHtml(nowClock())}</div>
+        <div class="pushDate">${escapeHtml(nowDateLabel())}</div>
+
+        <div class="pushCards">
+          <div class="pushCard" id="pushCard">
+                <div class="pushBodyonly">${escapeHtml(body)}</div>
+              </div>
+            </div>
+          </div>
+          <div class="pushHint"></div>
+        </div>
+      </div>
+
+      <!-- ✅ (요청) 2pt 크게 + 중앙정렬 -->
+      <div style="opacity:.78;font-size:14px;text-align:center;">
+        학습용 화면입니다(실제 외부 링크 이동 없음).
+      </div>
+    </div>
+  `;
+
+  document.getElementById("pushCard").onclick = ()=>{
+    clearStickyNotifyTimer();
+    hideBanner();
+    state.pendingExp = null;
+    go("exp_messenger",{ expId }, false);
+  };
+}
+
+/*** 메신저/카톡 체험 ***/
+function renderMessengerExp(expId){
+  const exp = getSCENARIOS()[expId];
+  if(!exp || exp.type!=="messenger") return go("case_list",{},true);
+
+  clearStickyNotifyTimer();
+  hideBanner();
+
+  if(state.run) state.run.abort();
+  const run = makeRun();
+  state.run = run;
+
+  const session = startSession(expId);
+  let stepIndex = 0;
+
+  const isKakao = exp.ui === "kakao";
+  const wrapperClass = isKakao ? "kakao" : "sms";
+
+  const headerTitle = exp.header?.title || "대화";
+  const headerSub = exp.header?.sub || "";
+  const initial = (headerTitle || "?").slice(0,1);
+
+  main.innerHTML = `
+    <div class="expWrap ${wrapperClass}">
+      <div class="chatHeader">
+        <div class="backBtn" id="simBack" title="뒤로" aria-label="뒤로">←</div>
+
+        <div class="profile">
+          <div class="avatar">
+            ${escapeHtml(initial)}
+            <div class="statusDot"></div>
+          </div>
+          <div class="pbox">
+            <p class="pname">${escapeHtml(headerTitle)}</p>
+            <p class="psub">${escapeHtml(headerSub)}</p>
+          </div>
+        </div>
+
+        <div class="hdrIcons">
+          <div class="hico" id="icoSearch" title="검색">⌕</div>
+          <div class="hico" id="icoHint" title="힌트">i</div>
+        </div>
+      </div>
+
+      <div class="chatArea ${isKakao?'kakaoBg':''}" id="chatArea"></div>
+
+      <div class="chatFooter ${isKakao?'kakaoFooter':'smsFooter'}">
+        <div class="chatInputRow">
+          <div class="chatIcon">＋</div>
+          <input class="chatField" placeholder="" disabled />
+          <div class="chatIcon">☺</div>
+          <button class="sendBtn" type="button" disabled>전송</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const chatArea = document.getElementById("chatArea");
+  document.getElementById("simBack").onclick = ()=> backToCaseList();
+  document.getElementById("icoSearch").onclick = ()=> showBanner("안내", "검색 UI는 학습용입니다.", false);
+  document.getElementById("icoHint").onclick = ()=> showBanner("힌트", "급함/링크/인증/송금 요구는 ‘멈춤’ 신호예요.", false);
+
+  chatArea.addEventListener("click",(e)=>{
+    const btn = e.target.closest(".linkBtn");
+    if(!btn) return;
+    showBanner("학습 안내", "외부 링크는 열지 말고, 공식 앱/홈페이지에서 확인하세요.", false);
+    e.preventDefault(); e.stopPropagation();
+  });
+
+  function appendMsg(from, text, opts={}){
+    if(run.aborted) return;
+
+    const row = document.createElement("div");
+    row.className = "rowMsg " + (from==="me" ? "me" : "other");
+
+    const stack = document.createElement("div");
+    stack.className = "stack " + (from==="me" ? "me" : "other");
+
+    const bubble = document.createElement("div");
+    bubble.className = "bubble " + (from==="me" ? "me" : "other") + (opts.pop ? " pop" : "");
+    bubble.innerHTML = makeClickableText(text);
+
+    const metaRow = document.createElement("div");
+    metaRow.className = "metaRow " + (from==="me" ? "me" : "other");
+
+    if(from==="me" && isKakao){
+      const read = document.createElement("span");
+      read.className = "readCount";
+      read.textContent = "1";
+      metaRow.appendChild(read);
+      run.setTimeout(()=> read.classList.add("vanish"), 1100);
+      run.setTimeout(()=> { if(read.parentNode) read.parentNode.removeChild(read); }, 1450);
+    }
+
+    const tm = document.createElement("span");
+    tm.textContent = nowTime();
+    metaRow.appendChild(tm);
+
+    stack.appendChild(bubble);
+    stack.appendChild(metaRow);
+
+    row.appendChild(stack);
+    chatArea.appendChild(row);
+    chatArea.scrollTop = chatArea.scrollHeight;
+  }
+
+  function endExp(){
+    if(run.aborted) return;
+    state.analytics.sessions.push(session);
+    go("result",{ expId }, true);
+  }
+
+  async function runNext(){
+    if(run.aborted) return;
+
+    const steps = (exp.steps||[]);
+    if(stepIndex >= steps.length) return endExp();
+
+    const step = steps[stepIndex];
+
+    if(step.type==="msg"){
+      const delay = (stepIndex === 0) ? 0 : MESSAGE_INTERVAL_MS;
+      run.setTimeout(()=>{
+        appendMsg(step.from==="me" ? "me" : "other", step.text, { pop:true });
+        stepIndex++;
+        runNext();
+      }, delay);
+      return;
+    }
+
+    if(step.type==="q"){
+      const lastText = (steps?.[stepIndex-1]?.text) || "";
+      const grace = calcReadDelay(lastText);
+
+      run.setTimeout(async ()=>{
+        const res = await showQuiz(step, run);
+        if(!res || run.aborted) return;
+
+        const vector = res.choice?.vector || {};
+        session.picks.push({
+          q: step.prompt || "",
+          choiceText: res.choice?.text || "",
+          good: res.good,
+          vector,
+          delta: Number(res.choice?.score||0),
+          explain: res.choice?.why || res.choice?.feedback || ""
+        });
+        applyVectorToTotals(vector);
+
+        const reply = res.choice?.reply || res.choice?.chat || toNaturalReply(res.choice?.text);
+        appendMsg("me", reply, { pop:true });
+
+        stepIndex++;
+        runNext();
+      }, grace);
+
+      return;
+    }
+
+    stepIndex++;
+    runNext();
+  }
+
+  runNext();
+}
+
+/*** 전화형 벨소리 및 수신중 음성 ***/
+let ringTimer = null;
+let ringCtx = null;
+let ringAudio = null;
+let callVoiceAudio = null;
+
+function startGalaxyLikeRingtone(run){
+  if(SOUND_RINGTONE_URL && String(SOUND_RINGTONE_URL).trim()){
+    ringAudio = playUrlAudio(SOUND_RINGTONE_URL, {loop:true, volume:1}, run);
+    return;
+  }
+  try{
+    ringCtx = new (window.AudioContext || window.webkitAudioContext)();
+    run?.audioCtxs?.add(ringCtx);
+    const ctx = ringCtx;
+
+    const burst = ()=>{
+      const now = ctx.currentTime;
+      const o1 = ctx.createOscillator();
+      const o2 = ctx.createOscillator();
+      const lfo = ctx.createOscillator();
+      const lfoGain = ctx.createGain();
+      const g = ctx.createGain();
+
+      o1.type="sine"; o2.type="sine";
+      o1.frequency.setValueAtTime(659.25, now);
+      o2.frequency.setValueAtTime(880.00, now);
+
+      lfo.type="sine";
+      lfo.frequency.setValueAtTime(6.0, now);
+      lfoGain.gain.setValueAtTime(7.0, now);
+      lfo.connect(lfoGain);
+      lfoGain.connect(o1.frequency);
+
+      g.gain.setValueAtTime(0.0001, now);
+      g.gain.exponentialRampToValueAtTime(0.14, now + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + 0.55);
+
+      o1.connect(g); o2.connect(g); g.connect(ctx.destination);
+
+      o1.start(now); o2.start(now + 0.03); lfo.start(now);
+      o1.stop(now + 0.60); o2.stop(now + 0.60); lfo.stop(now + 0.60);
+    };
+
+    burst();
+    clearInterval(ringTimer);
+    ringTimer = setInterval(()=>{ if(run?.aborted) return; burst(); }, 1200);
+  }catch(e){}
+}
+function stopRingtone(){
+  clearInterval(ringTimer);
+  ringTimer = null;
+  try{ if(ringAudio){ ringAudio.pause(); ringAudio.currentTime=0; ringAudio=null; } }catch(e){}
+  try{ if(ringCtx){ ringCtx.close(); ringCtx=null; } }catch(e){}
+}
+
+function renderCallExp(expId){
+  const exp = getSCENARIOS()[expId];
+  if(!exp || exp.type!=="call") return go("case_list",{},true);
+
+  if(state.run) state.run.abort();
+  const run = makeRun();
+  state.run = run;
+
+  const session = startSession(expId);
+
+  const callerName =
+    (CALLER_NAME_OVERRIDE && CALLER_NAME_OVERRIDE.trim())
+      ? CALLER_NAME_OVERRIDE.trim()
+      : (exp.incoming?.name || "발신자");
+
+  const callerNumber =
+    (CALLER_NUMBER_OVERRIDE && CALLER_NUMBER_OVERRIDE.trim())
+      ? CALLER_NUMBER_OVERRIDE.trim()
+      : (exp.incoming?.number || "010-0000-0000");
+
+  main.innerHTML = `
+    <div class="callIncoming">
+      <div class="callTopInfo">
+        <p class="name">${escapeHtml(callerName)}</p>
+        <p class="num">${escapeHtml(callerNumber)}</p>
+        <div class="callHint"></div>
+      </div>
+
+      <div class="callActions">
+        <button class="callBtn callReject" id="rejectCall">거절</button>
+        <button class="callBtn callAccept" id="acceptCall">받기</button>
+      </div>
+    </div>
+  `;
+
+  startGalaxyLikeRingtone(run);
+
+  document.getElementById("rejectCall").onclick = ()=>{
+    stopRingtone();
+    backToCaseList();
+  };
+
+  document.getElementById("acceptCall").onclick = ()=>{
+    stopRingtone();
+
+    main.innerHTML = `
+      <div class="callInPre">
+        <div class="who">실제 보이스피싱 범죄 목소리 수신중...</div>
+        <div class="timer" id="callTimer">00:01</div>
+        <div class="wave" aria-hidden="true">
+          <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        </div>
+      </div>
+    `;
+
+   const voiceUrl = (exp && exp.voiceUrl && String(exp.voiceUrl).trim())
+  ? exp.voiceUrl
+  : SOUND_CALL_VOICE_URL;
+
+if (voiceUrl && String(voiceUrl).trim()) {
+  callVoiceAudio = playUrlAudio(voiceUrl, { loop: true, volume: 1 }, run);
+}
+
+    const timerEl = document.getElementById("callTimer");
+    let sec = 1;
+    run.setInterval(()=>{
+      sec++;
+      if(timerEl) timerEl.textContent = "00:" + String(sec).padStart(2,"0");
+    }, 1000);
+
+    run.setTimeout(()=>{
+      try{ if(callVoiceAudio){ callVoiceAudio.pause(); callVoiceAudio.currentTime=0; callVoiceAudio=null; } }catch(e){}
+      startCallChat();
+    }, 12400);
+  };
+
+  function startCallChat(){
+    if(run.aborted) return;
+
+    let stepIndex = 0;
+    main.innerHTML = `
+      <div class="expWrap sms">
+        <div class="chatHeader">
+          <div class="backBtn" id="callBack" aria-label="뒤로">←</div>
+          <div class="profile">
+            <div class="avatar">📞</div>
+            <div class="pbox">
+              <p class="pname">${escapeHtml(callerName)}</p>
+              <p class="psub">${escapeHtml(callerNumber)}</p>
+            </div>
+          </div>
+          <div class="hdrIcons">
+            <div class="hico" id="callHint" title="힌트">i</div>
+          </div>
+        </div>
+        <div class="chatArea" id="callArea"></div>
+      </div>
+    `;
+
+    const callArea = document.getElementById("callArea");
+    document.getElementById("callBack").onclick = ()=> backToCaseList();
+    document.getElementById("callHint").onclick = ()=> showBanner("힌트", "전화에서 ‘금전/인증/압박’이 나오면 끊고 공식 채널로 확인하세요.", false);
+
+    function appendLine(from, text, opts={}){
+      if(run.aborted) return;
+
+      const row = document.createElement("div");
+      row.className = "rowMsg " + (from==="me" ? "me" : "other");
+
+      const stack = document.createElement("div");
+      stack.className = "stack " + (from==="me" ? "me" : "other");
+
+      const bubble = document.createElement("div");
+      bubble.className = "bubble " + (from==="me" ? "me" : "other") + (opts.pop?" pop":"");
+      bubble.textContent = text;
+
+      const metaRow = document.createElement("div");
+      metaRow.className = "metaRow " + (from==="me" ? "me" : "other");
+      const tm = document.createElement("span");
+      tm.textContent = nowTime();
+      metaRow.appendChild(tm);
+
+      stack.appendChild(bubble);
+      stack.appendChild(metaRow);
+
+      row.appendChild(stack);
+      callArea.appendChild(row);
+      callArea.scrollTop = callArea.scrollHeight;
+    }
+
+    function endExp(){
+      if(run.aborted) return;
+      state.analytics.sessions.push(session);
+      go("result",{ expId }, true);
+    }
+
+    async function runNext(){
+      if(run.aborted) return;
+
+      const steps = (exp.steps||[]);
+      if(stepIndex >= steps.length) return endExp();
+
+      const step = steps[stepIndex];
+
+      if(step.type==="line"){
+        const delay = (stepIndex === 0) ? 0 : MESSAGE_INTERVAL_MS;
+        run.setTimeout(()=>{
+          appendLine(step.from==="me" ? "me" : "other", step.text, { pop:true });
+          stepIndex++;
+          runNext();
+        }, delay);
+        return;
+      }
+
+      if(step.type==="q"){
+        const lastText = (steps?.[stepIndex-1]?.text) || "";
+        const grace = calcReadDelay(lastText);
+
+        run.setTimeout(async ()=>{
+          const res = await showQuiz(step, run);
+          if(!res || run.aborted) return;
+
+          const vector = res.choice?.vector || {};
+          session.picks.push({
+            q: step.prompt || "",
+            choiceText: res.choice?.text || "",
+            good: res.good,
+            vector,
+            delta: Number(res.choice?.score||0),
+            explain: res.choice?.why || res.choice?.feedback || ""
+          });
+          applyVectorToTotals(vector);
+
+          const reply = res.choice?.reply || res.choice?.chat || toNaturalReply(res.choice?.text);
+          appendLine("me", reply, { pop:true });
+
+          stepIndex++;
+          runNext();
+        }, grace);
+        return;
+      }
+
+      stepIndex++;
+      runNext();
+    }
+
+    runNext();
+  }
+}
+
+/*** 피싱 범죄예방수칙 ***/
+function renderReport(){
+  const slides = [
+    { t:"1) 멈추기", b:"‘지금 당장’, ‘비밀’, ‘대신 결제’, ‘인증번호 알려줘’가 나오면 일단 멈추세요." },
+    { t:"2) 공식 경로 확인", b:"링크로 들어가지 말고, 앱/웹을 직접 열거나 대표번호·기존 저장번호로 콜백해 확인하세요." },
+    { t:"3) 기록·차단·신고", b:"대화 캡처·발신번호·계좌·링크를 확보한 뒤 차단하고 신고하면 피해 확산을 막을 수 있어요." }
+  ];
+
+  main.innerHTML = `
+    <div class="reportWrap">
+      <div class="card" style="padding:16px;">
+        <div style="font-weight:1000;letter-spacing:-.02em;font-size:16px;">피싱 범죄예방수칙</div>
+        <div style="margin-top:8px;color:var(--muted);font-size:13px;line-height:1.55;">
+          3가지만 기억하세요</div>
+      </div>
+
+      <div style="height:12px;"></div>
+
+      <div class="slider card" style="padding:0;overflow:hidden;">
+        <div class="slideTrack" id="track">
+          ${slides.map(s=>`
+            <div class="slide">
+              <div class="card" style="padding:16px;">
+                <div style="font-weight:1000;letter-spacing:-.02em;font-size:16px;">${escapeHtml(s.t)}</div>
+                <div style="margin-top:8px;color:rgba(31,36,48,.78);font-size:13px;line-height:1.6;">
+                  ${escapeHtml(s.b)}
+                </div>
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+
+      <div class="dots" id="dots"></div>
+
+      <div class="cta" style="margin-top:12px;">
+        <button class="btn primary block" id="goExpFromReport">체험으로 가기</button>
+      </div>
+    </div>
+  `;
+
+  const track = document.getElementById("track");
+  const dots = document.getElementById("dots");
+  let idx = 0;
+
+  function renderDots(){
+    dots.innerHTML = slides.map((_,i)=>`<span class="dot ${i===idx?'on':''}"></span>`).join("");
+  }
+  function setIdx(i){
+    idx = Math.max(0, Math.min(slides.length-1, i));
+    const w = Math.min(window.innerWidth - 24, 560);
+    track.style.transform = `translateX(${-idx * w}px)`;
+    renderDots();
+  }
+
+  let startX = null;
+  track.parentElement.addEventListener("touchstart",(e)=>{ startX = e.touches[0].clientX; },{passive:true});
+  track.parentElement.addEventListener("touchend",(e)=>{
+    if(startX==null) return;
+    const endX = e.changedTouches[0].clientX;
+    const dx = endX - startX;
+    if(dx < -40) setIdx(idx+1);
+    if(dx > 40) setIdx(idx-1);
+    startX = null;
+  },{passive:true});
+
+  window.addEventListener("resize", ()=> setIdx(idx));
+  renderDots();
+  setIdx(0);
+
+  document.getElementById("goExpFromReport").onclick = ()=> go("case_list",{},true);
+}
+
+/*** 결과 화면 ***/
+function scoreToType(avg){
+  if(avg >= 85) return { type:"강력 방어형", msg:"대부분의 위험 신호를 잘 피하고 있어요." };
+  if(avg >= 70) return { type:"안정 방어형", msg:"기본은 탄탄해요. 다만 몇 가지 습관을 더 잡으면 완벽해요." };
+  if(avg >= 55) return { type:"주의 방어형", msg:"상황에 따라 실수할 수 있어요. ‘멈춤→공식확인’을 더 습관화하세요." };
+  return { type:"고위험 방어형", msg:"위험 신호에 흔들릴 수 있어요. 반드시 ‘검증’부터 하도록 루틴을 만들어요." };
+}
+function barColor(k){
+  if(k==="verify") return "var(--c-verify)";
+  if(k==="link") return "var(--c-link)";
+  if(k==="otp") return "var(--c-otp)";
+  if(k==="urgency") return "var(--c-urgency)";
+  if(k==="money") return "var(--c-money)";
+  if(k==="context") return "var(--c-context)";
+  return "var(--primary)";
+}
+function badgeStyleByType(t){
+  if(t==="강력 방어형") return { bg:"rgba(43,196,138,.16)", bd:"rgba(43,196,138,.24)", fg:"#1D9A6C" };
+  if(t==="안정 방어형") return { bg:"rgba(47,140,255,.16)", bd:"rgba(47,140,255,.22)", fg:"#2D70C9" };
+  if(t==="주의 방어형") return { bg:"rgba(245,158,11,.18)", bd:"rgba(245,158,11,.26)", fg:"#B86B1D" };
+  return { bg:"rgba(255,107,107,.16)", bd:"rgba(255,107,107,.24)", fg:"#D45050" };
+}
+
+function renderResult({ expId }){
+  const exp = getSCENARIOS()[expId] || {};
+
+  // ✅ 정답률 기반 점수
+  const { overall, dims, totalQ, correctQ } = calcScoresFromSession(expId);
+
+  // 종합 안전지수는 정답률로 확정
+  const avg = overall;
+
+  const typeInfo = scoreToType(avg);
+  const bs = badgeStyleByType(typeInfo.type);
+
+  // ✅ 정렬/강점/취약은 "평가된 차원"만 대상으로 (null 제외)
+  const scoredDims = DIMENSIONS.filter(d => Number.isFinite(dims[d.key]));
+  const baseList = scoredDims.length ? scoredDims : DIMENSIONS;
+  const sorted = [...baseList].sort((a,b)=> ((dims[a.key] ?? 0) - (dims[b.key] ?? 0)));
+  const weak2 = sorted.slice(0,2);
+  const strong2 = sorted.slice(-2).reverse();
+
+  const keyPoints = Array.isArray(exp.keyPoints) ? exp.keyPoints : [];
+  const oneLiner = exp.oneLiner || "멈추고(Stop) 공식 경로로 확인(Check) 후 행동(Action).";
+
+// ✅ 방금 끝난 세션 picks 가져오기
+const ses = [...state.analytics.sessions].reverse().find(s => s.expId === expId);
+const picks = ses?.picks || [];
+
+// ✅ 맞힌/틀린 문항 분리
+const wrongPicks = picks.filter(p=>!p.good);
+const rightPicks = picks.filter(p=>p.good);
+
+// ✅ 문항별 관련 차원 라벨 만들기(벡터 기반)
+function pickDims(p){
+  const keys = DIMENSIONS.filter(d => Number(p.vector?.[d.key]||0) !== 0).map(d=>d.label);
+  return keys.length ? keys.join(", ") : "기타";
+}
+
+  main.innerHTML = `
+  <div class="resultWrap">
+    <div class="card" style="padding:16px;">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+        <div style="font-weight:1000;letter-spacing:-.02em;font-size:16px;">나의 종합 안전지수</div>
+        <div style="font-size:12.5px;font-weight:950;color:rgba(31,36,48,.72);">[점수가 높을수록 “강점”]</div>
+      </div>
+
+      <div class="ringWrap">
+        <div class="ringSvgWrap" aria-label="안전지수 원형 그래프">
+          <svg width="160" height="160" viewBox="0 0 160 160">
+            <defs>
+              <linearGradient id="ringGrad" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="160" y2="160">
+                <stop offset="0%" stop-color="#2F8CFF"/>
+                <stop offset="25%" stop-color="#12B981"/>
+                <stop offset="50%" stop-color="#F59E0B"/>
+                <stop offset="75%" stop-color="#FB7185"/>
+                <stop offset="100%" stop-color="#6A2BD1"/>
+              </linearGradient>
+            </defs>
+            <circle cx="80" cy="80" r="60" fill="none" stroke="rgba(31,36,48,.10)" stroke-width="16" />
+            <circle id="ringProg" cx="80" cy="80" r="60" fill="none" stroke="url(#ringGrad)"
+              stroke-width="16" stroke-linecap="round" transform="rotate(-90 80 80)" stroke-dasharray="0 999" />
+          </svg>
+          <div class="ringCenter">
+            <div class="n">${avg}</div>
+          </div>
+        </div>
+
+        <div class="badgeType" style="background:${bs.bg}; border-color:${bs.bd}; color:${bs.fg};">${escapeHtml(typeInfo.type)}</div>
+        <div style="color:rgba(31,36,48,.72);font-size:13px;line-height:1.55;text-align:center;">
+          ${escapeHtml(typeInfo.msg)}
+        </div>
+      </div>
+
+      <div class="cta" style="margin-top:12px;">
+        <button class="btn primary" id="retryBtn" style="flex:1;">다시 체험</button>
+        <button class="btn ghost" id="goCasesBtn" style="flex:1;">사례로</button>
+      </div>
+    </div>
+
+    <div class="card" style="padding:16px;margin-top:12px;">
+      <div style="font-weight:1000;letter-spacing:-.02em;font-size:15px;">세부 취약 / 강점 분석</div>
+      <div style="margin-top:6px;color:rgba(31,36,48,.70);font-size:13px;line-height:1.5;">
+        <b>100</b>에 가까울수록 강점, 낮을수록 해당 영역이 취약할 수 있어요.
+      </div>
+
+      <div class="bars">
+        ${DIMENSIONS.map(d=>{
+          const raw = dims[d.key];
+          const v = Number.isFinite(raw) ? raw : 0;
+          const label = Number.isFinite(raw) ? String(raw) : "—";
+          return `
+          <div class="barRow">
+            <div class="k">${escapeHtml(d.label)}</div>
+            <div class="barTrack">
+              <div class="barFill" style="--v:${v}; --bar-color:${barColor(d.key)};"></div>
+            </div>
+            <div class="v">${label}</div>
+          </div>`;
+        }).join("")}
+      </div>
+
+      <div class="plainList">
+        <div class="ttl">취약 포인트(개선 우선순위)</div>
+        ${weak2.map(w=>`<div>• <b>${escapeHtml(w.label)}</b> (${Number.isFinite(dims[w.key])?dims[w.key]:"—"}점) — ${escapeHtml(w.tip)}</div>`).join("")}
+      </div>
+
+      <div class="plainList">
+        <div class="ttl">강점 포인트(유지하면 좋은 습관)</div>
+        ${strong2.map(s=>`<div>• <b>${escapeHtml(s.label)}</b> (${Number.isFinite(dims[s.key])?dims[s.key]:"—"}점)</div>`).join("")}
+      </div>
+
+
+  <!-- ✅ 여기에 점수 안내표 삽입 -->
+  <div style="margin-top:12px; width:100%; font-size:13px; color:rgba(31,36,48,.78);">
+    <div style="font-weight:1000;margin-bottom:6px;">점수 안내표</div>
+    <div style="border:1px solid rgba(0,0,0,.08); border-radius:14px; overflow:hidden;">
+      <div style="display:grid;grid-template-columns:1fr 1fr; background:rgba(31,36,48,.03); font-weight:1000;">
+        <div style="padding:10px 12px;">구간</div>
+        <div style="padding:10px 12px;">등급</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;">
+        <div style="padding:10px 12px;">85 ~ 100</div>
+        <div style="padding:10px 12px;color:#1D9A6C;font-weight:1000;">양호</div>
+
+        <div style="padding:10px 12px;">70 ~ 84</div>
+        <div style="padding:10px 12px;color:#2D70C9;font-weight:1000;">보통</div>
+
+        <div style="padding:10px 12px;">55 ~ 69</div>
+        <div style="padding:10px 12px;color:#B86B1D;font-weight:1000;">주의</div>
+
+        <div style="padding:10px 12px;">0 ~ 54</div>
+        <div style="padding:10px 12px;color:#D45050;font-weight:1000;">취약</div>
+      </div>
+    </div>
+  </div>
+
+
+<div class="plainList">
+  <div class="ttl">내가 취약했던 문항(틀린 문제)</div>
+  ${wrongPicks.length ? wrongPicks.map(p=>`
+    <div style="margin-top:8px;">
+      • <b>${escapeHtml(p.q)}</b><br>
+      <span style="color:rgba(31,36,48,.75);">관련 영역: ${escapeHtml(pickDims(p))}</span><br>
+      <span style="color:#D45050;font-weight:900;">왜 취약?</span> ${escapeHtml(p.explain || "설명 없음")}
+    </div>
+  `).join("") : `<div>• 틀린 문항이 없습니다 👍</div>`}
+</div>
+
+<div class="plainList">
+  <div class="ttl">내 강점 문항(맞힌 문제)</div>
+  ${rightPicks.length ? rightPicks.map(p=>`
+    <div style="margin-top:8px;">
+      • <b>${escapeHtml(p.q)}</b><br>
+      <span style="color:rgba(31,36,48,.75);">관련 영역: ${escapeHtml(pickDims(p))}</span><br>
+      <span style="color:#1D9A6C;font-weight:900;">왜 강점?</span> ${escapeHtml(p.explain || "설명 없음")}
+    </div>
+  `).join("") : `<div>• 맞힌 문항이 없습니다.</div>`}
+</div>
+
+      <div class="plainList">
+        <div class="ttl">핵심 체크 포인트(이번 시나리오 유형)</div>
+        ${keyPoints.length ? keyPoints.map(p=>`<span class="pill">${escapeHtml(p)}</span>`).join("") : `<div>• 멈춤 → 공식 경로 확인 → 기록/차단/신고</div>`}
+      </div>
+
+      <div class="plainList">
+        <div class="ttl">한줄 요약</div>
+        <div>${escapeHtml(oneLiner)}</div>
+      </div>
+
+      <div class="cta" style="margin-top:12px;">
+        <button class="btn ghost block" id="shareFromResult">결과 공유하기</button>
+      </div>
+    </div>
+  </div>
+  `;
+
+  // ✅ 원형 그래프 진행률도 avg(=정답률)로 정확히 반영
+  const circle = document.getElementById("ringProg");
+  const r = 60;
+  const c = 2 * Math.PI * r;
+  const prog = Math.max(0, Math.min(100, avg)) / 100;
+  circle.setAttribute("stroke-dasharray", `${(c*prog).toFixed(2)} ${(c*(1-prog)).toFixed(2)}`);
+
+  document.getElementById("retryBtn").onclick = ()=> go("case_list",{},true);
+  document.getElementById("goCasesBtn").onclick = ()=> go("case_list",{},true);
+  document.getElementById("shareFromResult").onclick = ()=> shareApp(`내 피싱 예방 안전지수는 ${avg}점(${typeInfo.type})이야. 같이 체험해봐!`);
+}
+
+/* =========================================================
+   ✅ PART2: 카테고리/사례/시나리오 (새로 + 기존 포함)
+   ========================================================= */
+window.DATA_CATEGORIES = {
+  kakao:   { label:"카톡 사칭",   chip:"purple" },
+  sms:     { label:"문자 스미싱", chip:"orange" },
+  call:    { label:"전화 사기",   chip:"red" },
+  job:     { label:"취업/알바",   chip:"green" },
+  romance: { label:"로맨스",     chip:"blue" },
+};
+
+window.CASES = [
+  { id:"case_family", title:"가족사칭", subtitle:"새 번호 · 통화 회피 · 인증번호(OTP) 요구", category:"kakao", experienceId:"exp_m_family",
+    info:{ victims:["부모님/보호자"], keywords:["새 번호,","긴급,","링크,","OTP,"], summary:"자녀를 사칭해 급한 상황을 만들고 링크/인증번호로 결제 승인을 유도합니다." } },
+  { id:"case_smishing", title:"물품 반송", subtitle:"배송/반송 미끼 · 단축URL · 앱 설치/권한 요구", category:"sms", experienceId:"exp_m_smishing",
+    info:{ victims:["전 연령(특히 스마트폰 사용자)"], keywords:["배송,","단축URL,","앱 설치,","권한"], summary:"문자 링크 클릭 → 악성앱 설치/권한 허용로 이어질 수 있습니다." } },
+  { id:"case_agency", title:"기관사칭", subtitle:"계정 잠김 공포 · 링크/인증 유도 · 원격/상담 유도", category:"kakao", experienceId:"exp_m_agency",
+    info:{ victims:["금융앱 이용자"], keywords:["보안센터,","해외로그인,","인증번호,","원격"], summary:"불안을 유발해 ‘지금 처리’하게 만들고 인증/링크로 계정 탈취를 시도합니다." } },
+
+  { id:"case_invitation", title:"청첩장 스미싱", subtitle:"지인 사칭 · 단축URL · ‘초대장 보기’ 앱설치·권한 유도", category:"sms", experienceId:"exp_m_invitation",
+    info:{ victims:["전 연령(지인 연락이 잦은 사용자)"], keywords:["모바일청첩장,","단축URL,","앱설치,","권한"], summary:"지인(청첩장)을 가장해 링크 클릭을 유도하고 악성앱 설치·권한 허용으로 금융/정보 피해로 이어질 수 있습니다." } },
+
+  { id:"case_obituary", title:"부고장 스미싱", subtitle:"지인 사칭 · 단축URL · ‘부고장 확인’ 앱설치·권한 유도", category:"sms", experienceId:"exp_m_obituary",
+    info:{ victims:["전 연령(지인 연락이 잦은 사용자)"], keywords:["부고장,","단축URL,","앱설치,","권한"], summary:"부고를 가장해 감정적으로 흔들리게 만든 뒤 링크 클릭/설치/권한 허용을 유도합니다." } },
+
+  { id:"case_cambodia_job", title:"해외 취업사기", subtitle:"고수익 미끼 · 여권/신분증 요구 · 보증금 선입금", category:"job", experienceId:"exp_m_cambodia_job",
+    info:{ victims:["구직자"], keywords:["해외취업,","여권,","신분증","보증금"], summary:"해외 고수익을 미끼로 서류/돈을 먼저 요구하며 고립(비밀)을 유도합니다." } },
+
+  { id:"case_noshow", title:"노쇼사기", subtitle:"단체예약 신뢰 확보 → 대리구매/선결제 유도", category:"call", experienceId:"exp_c_noshow",
+    info:{ victims:["자영업자/소상공인"], keywords:["단체예약,","공문,","대리구매,","선결제"], summary:"큰 주문으로 믿게 만든 뒤 ‘대리구매 선결제’로 피해를 만듭니다." } },
+
+  { id:"case_investigation", title:"수사기관 사칭", subtitle:"협박/공포 · 비밀 유지 · 안전계좌 송금/앱 설치", category:"call", experienceId:"exp_c_investigation",
+    info:{ victims:["고령층/불안에 취약한 사용자"], keywords:["사건번호,","안전계좌,","보안앱,","송금"], summary:"권위로 압박해 통제하고 송금·설치 단계로 끌고 갑니다." } },
+
+  { id:"case_self_hostage", title:"셀프 감금", subtitle:"혼자 있게 함 · 통화 끊지 말라 · ATM/현금화 지시", category:"call", experienceId:"exp_c_self_hostage",
+    info:{ victims:["고령층/혼자 있는 사람"], keywords:["고립,","통화유지,","ATM,","현금"], summary:"통화 유지로 통제하며 이동/현금화를 시켜 피해를 키웁니다." } },
+
+  { id:"case_loan_refund", title:"대출 이자 환급", subtitle:"환급/서류 미끼 · 링크 클릭 · 개인정보/인증 입력", category:"sms", experienceId:"exp_m_loan_refund",
+    info:{ victims:["대출 이용자"], keywords:["환급,","서류,","단축링크,","인증입력"], summary:"‘환급’으로 클릭을 유도하고 개인정보/인증 입력으로 탈취를 시도합니다." } },
+
+  { id:"case_loan_switch_call", title:"대출 이자 인하 갈아타기 피싱", subtitle:"저금리 전환 미끼 · 앱 설치/원격 · 수수료/보증금 · ‘안전계좌’ 유도",
+    category:"call", experienceId:"exp_c_loan_switch",
+    info:{ victims:["대출 이용자/금리 부담이 큰 사용자"], keywords:["갈아타기,","저금리,","수수료,","원격,","안전계좌"], summary:"저금리 전환을 미끼로 앱 설치·원격·수수료/송금 유도를 하는 전화형 사기입니다." } },
+
+  {id:"case_romance",title:"통장 묶기(지급정지 협박)",subtitle:"소액 입금 · ‘착오송금’ 주장 · 지급정지/고소 협박 · 합의금 요구",category:"kakao",experienceId:"exp_m_romance",info:{victims:["전 연령(계좌 사용자)"],keywords:["통장묶기,","지급정지,","착오송금,","합의금,","핑돈"],
+    summary:"모르는 소액이 들어온 뒤 ‘잘못 보냈다’며 반환을 요구하고, 지급정지·고소로 협박해 합의금을 뜯어냅니다."}}
+,
+
+  { id:"case_job_highpay", title:"고수익 알바사기", subtitle:"쉬운 일+고수익 · 선입금(교육비) · OTP 요구", category:"job", experienceId:"exp_m_job_highpay",
+    info:{ victims:["구직자/부업 찾는 사람"], keywords:["당일정산,","선입금,","교육비,","OTP"], summary:"소액 선입금으로 시작해 인증/추가 결제로 확대되는 유형입니다." } }
+];
+
+/* ===== 시나리오들 ===== */
+window.SCENARIOS.exp_m_family = {
+  type:"messenger",
+  ui:"kakao",
+  title:"가족사칭(카톡)",
+  notify:{ title:"", body:"새 번호로 온 메시지가 도착했어요." },
+  header:{ title:"자녀(가족)", sub:"새 번호" },
+  keyPoints:["‘새 번호’ + ‘급함’은 의심","링크/인증번호 요구는 중단","기존 번호로 콜백 확인"],
+  oneLiner:"새 번호로 ‘급한 송금/인증’을 요구하면 끊고 기존 번호로 확인하세요.",
+  steps:[
+    {type:"msg",from:"other",text:"엄마 나 휴대폰 고장나서 번호 바뀌었어."},
+    {type:"msg",from:"other",text:"지금 급하게 결제해야 해서… 링크 보낼게. 확인 좀 해줘."},
+    {type:"q",prompt:"‘번호 바뀜 + 급함 + 링크’가 동시에 나오면?",
+      choices:[
+        {text:"기존에 저장된 번호로 직접 전화/카톡해 사실 확인", score:+20, why:"사기는 ‘검증’을 막으려고 새 번호로만 대화하게 만들어요.",
+         vector:V(+2,0,0,+1,0,+2), reply:"알겠어. 근데 내가 기존 번호로 직접 확인해볼게."},
+        {text:"링크부터 눌러보고 상황 파악", score:-20, why:"링크 클릭은 스미싱/피싱으로 이어질 수 있어요.",
+         vector:V(-1,-2,0,-1,0,-1), reply:"일단 링크 눌러볼게."}
+      ]},
+    {type:"msg",from:"other",text:"지금 인증번호(OTP) 온 거 있으면 나한테 알려줘. 결제 승인해야 해."},
+    {type:"q",prompt:"가족이라도 OTP/인증번호를 요구하면?",
+      choices:[
+        {text:"절대 공유하지 않고 중단 + 공식 채널로 확인", score:+20, why:"OTP는 ‘본인 확인’ 수단이라 공유하면 피해가 바로 발생할 수 있어요.",
+         vector:V(+2,0,+2,+1,0,+2), reply:"OTP는 못 알려줘. 끊고 확인할게."},
+        {text:"급하다니 알려준다", score:-20, why:"인증번호 공유는 계정/결제 탈취로 이어질 수 있어요.",
+         vector:V(-1,0,-2,-2,-2,-2), reply:"알겠어. 번호 알려줄게."}
+      ]}
+  ]
+};
+
+window.SCENARIOS.exp_m_smishing = {
+  type:"messenger",
+  ui:"sms",
+  title:"물품 반송 스미싱(문자)",
+  notify:{ title:"", body:"배송/반송 안내 문자가 도착했어요." },
+  header:{ title:"문자메시지", sub:"배송 안내" },
+  keyPoints:["단축URL은 목적지 숨김","앱 설치·권한 요구는 중단","공식 앱/택배사 앱에서 직접 조회"],
+  oneLiner:"배송/반송 문자는 링크 클릭 대신 공식 앱/홈페이지에서 직접 조회하세요.",
+  steps:[
+    {type:"msg",from:"other",text:"[택배] 주소 오류로 반송 예정입니다. 확인: http://bit.ly/parcel-xx"},
+    {type:"q",prompt:"배송 문자 단축URL을 받으면?",
+      choices:[
+        {text:"링크 클릭하지 말고 택배사 앱/공식홈페이지에서 직접 조회", score:+20, why:"공식 경로 확인이 가장 안전합니다.",
+         vector:V(+2,+2,0,+1,0,+2), reply:"링크는 안 누를게. 택배사 앱에서 직접 조회할게."},
+        {text:"급하니까 링크 클릭", score:-15, why:"단축URL은 악성 사이트로 연결될 수 있어요.",
+         vector:V(-1,-2,0,-1,0,-1), reply:"일단 클릭해서 확인해볼게."}
+      ]},
+    {type:"msg",from:"other",text:"보안 업데이트 필요: ‘택배조회.apk’ 설치 후 권한 허용"},
+    {type:"q",prompt:"apk 설치/권한 허용을 요구하면?",
+      choices:[
+        {text:"즉시 중단/차단 + 보안 점검", score:+20, why:"설치+권한은 스미싱의 핵심 단계입니다.",
+         vector:V(+2,+2,+2,+1,0,+2), reply:"이건 위험해. 설치 안 하고 차단할게."},
+        {text:"설치해서 빨리 확인", score:-20, why:"악성앱 설치로 금융/문자 탈취 가능성이 큽니다.",
+         vector:V(-2,-2,-2,-1,-2,-2), reply:"설치해볼게."}
+      ]}
+  ]
+};
+
+window.SCENARIOS.exp_m_agency = {
+  type:"messenger",
+  ui:"kakao",
+  title:"기관사칭(카톡)",
+  notify:{ title:"", body:"‘계정 보안’ 관련 메시지가 도착했어요." },
+  header:{ title:"보안센터", sub:"긴급 알림" },
+  keyPoints:["불안 유발 메시지 주의","링크/인증 유도는 의심","공식 앱에서 직접 확인"],
+  oneLiner:"‘계정 잠김/해외 로그인’은 공포를 이용합니다. 공식 앱에서 직접 확인하세요.",
+  steps:[
+    {type:"msg",from:"other",text:"[보안센터] 해외 로그인 시도가 감지되었습니다. 계정 잠금 전 확인 필요"},
+    {type:"msg",from:"other",text:"즉시 확인: https://example.com/security-check"},
+    {type:"q",prompt:"보안센터를 사칭한 링크가 오면?",
+      choices:[
+        {text:"링크 클릭 대신 공식 앱/홈페이지에서 직접 로그인해 확인", score:+20, why:"링크는 피싱 페이지일 수 있어요.",
+         vector:V(+2,+2,0,+2,0,+2), reply:"링크는 안 누르고 공식 앱에서 직접 확인하겠습니다."},
+        {text:"링크 눌러서 로그인", score:-20, why:"로그인 정보가 탈취될 수 있어요.",
+         vector:V(-1,-2,-2,-2,-1,-2), reply:"링크 눌러서 확인해볼게요."}
+      ]}
+  ]
+};
+
+window.SCENARIOS.exp_m_invitation = {
+  type:"messenger",
+  ui:"sms",
+  title:"청첩장 스미싱(문자)",
+  notify:{ title:"", body:"‘청첩장’ 안내 문자가 도착했어요." },
+  header:{ title:"문자메시지", sub:"초대장 알림" },
+  keyPoints:["청첩장 링크는 ‘직접 확인’","단축URL 주의","apk/권한 요구 즉시 중단"],
+  oneLiner:"청첩장 링크는 누르지 말고, 지인에게 직접 확인하세요.",
+  steps:[
+    {type:"msg",from:"other",text:"[모바일청첩장] 민정❤현우 결혼식에 초대합니다."},
+    {type:"msg",from:"other",text:"초대장 보기: http://bit.ly/invite-2025"},
+    {type:"q",prompt:"청첩장 링크가 왔을 때 가장 안전한 첫 행동은?",
+      choices:[
+        {text:"링크를 누르지 않고, 발신 지인에게 직접 확인", score:+20, why:"지인 사칭 스미싱은 ‘직접 확인’이 가장 효과적입니다.",
+         vector:V(+2,+2,0,+1,0,+2), reply:"링크는 안 누를게. 먼저 너한테 직접 연락해서 확인할게."},
+        {text:"그럴듯하니 링크 클릭", score:-20, why:"단축 URL은 목적지를 숨길 수 있습니다.",
+         vector:V(0,-2,0,-1,0,-1), reply:"일단 링크 눌러서 확인해볼게."}
+      ]},
+    {type:"msg",from:"other",text:"[안내] 링크가 안 열리면 ‘초대장 뷰어.apk’ 설치 후 권한 허용"},
+    {type:"q",prompt:"apk 설치+권한 요구가 나오면?",
+      choices:[
+        {text:"즉시 중단/삭제/차단 + 점검/신고", score:+20, why:"설치+권한요구는 스미싱의 핵심 단계입니다.",
+         vector:V(+2,+2,+2,+1,0,+2), reply:"이건 위험해. 설치 안 하고 삭제/차단할게."},
+        {text:"설치해서 본다", score:-20, why:"접근성/문자 권한은 특히 고위험입니다.",
+         vector:V(-1,-2,-2,-1,-2,-2), reply:"그럼 설치해서 볼게…"}
+      ]}
+  ]
+};
+
+window.SCENARIOS.exp_m_obituary = {
+  type:"messenger",
+  ui:"sms",
+  title:"부고장 스미싱(문자)",
+  notify:{ title:"", body:"‘부고장’ 안내 문자가 도착했어요." },
+  header:{ title:"문자메시지", sub:"부고 알림" },
+  keyPoints:["부고장 링크도 ‘직접 확인’","단축URL 주의","앱 설치/권한 요구=중단"],
+  oneLiner:"부고장 링크는 누르지 말고, 가족/지인에게 사실 확인 후 공식 경로로 확인하세요.",
+  steps:[
+    {type:"msg",from:"other",text:"[부고] 故 김○○님 별세 / 부고장 확인: http://bit.ly/obit-2025"},
+    {type:"q",prompt:"부고장 링크가 왔을 때 가장 안전한 확인 방법은?",
+      choices:[
+        {text:"링크 클릭 전, 가족/지인에게 사실 확인", score:+20, why:"감정이 흔들릴 때 클릭이 가장 쉬워져요.",
+         vector:V(+2,+2,0,+1,0,+2), reply:"링크 누르기 전에 가족/지인에게 먼저 확인할게."},
+        {text:"급하니 바로 클릭", score:-15, why:"사기는 ‘급함’을 이용합니다.",
+         vector:V(-1,-2,0,-2,0,-1), reply:"급하니까 링크로 확인할게…"}
+      ]},
+    {type:"msg",from:"other",text:"[안내] ‘부고장 뷰어’ 설치 필요(알림/문자/접근성 권한 허용)"},
+    {type:"q",prompt:"권한 허용을 요구하면?",
+      choices:[
+        {text:"즉시 중단/차단 + 점검/신고", score:+20, why:"설치/권한 요청은 스미싱의 핵심 단계입니다.",
+         vector:V(+2,+2,+2,+1,0,+2), reply:"설치 안 하고 차단할게."},
+        {text:"설치하고 권한 허용", score:-20, why:"‘보기만’이 아니라 제어권을 뺏길 수 있어요.",
+         vector:V(-1,-2,-2,-1,-2,-2), reply:"설치해서 확인할게…"}
+      ]}
+  ]
+};
+
+window.SCENARIOS.exp_m_cambodia_job = {
+  type:"messenger",
+  ui:"kakao",
+  title:"해외 취업사기(메신저)",
+  notify:{ title:"", body:"해외 고수익 채용 메시지가 도착했어요." },
+  header:{ title:"해외채용담당", sub:"고수익 채용" },
+  keyPoints:["여권/신분증 요구 주의","선입금 요구=중단","공식 채널·회사 실체 확인"],
+  oneLiner:"해외 고수익+선입금+신분증 요구는 대표적인 취업사기 패턴입니다.",
+  steps:[
+    {type:"msg",from:"other",text:"해외 근무(캄보디아) 월 700만원 가능. 바로 출국 가능하신가요?"},
+    {type:"msg",from:"other",text:"여권/신분증 사진 먼저 보내주시면 절차 진행할게요."},
+    {type:"q",prompt:"여권/신분증을 먼저 요구하면?",
+      choices:[
+        {text:"회사/공식 채널 검증 전엔 제공하지 않는다", score:+20, why:"신분증은 2차 범죄(대포통장/대포폰)에 악용될 수 있어요.",
+         vector:V(+2,0,+2,+1,0,+2), reply:"회사 확인 전엔 신분증/여권은 못 보내요."},
+        {text:"일단 보내고 진행", score:-20, why:"개인정보 유출로 피해가 확장될 수 있어요.",
+         vector:V(-1,0,-2,-1,-2,-2), reply:"알겠습니다. 보내드릴게요."}
+      ]},
+    {type:"msg",from:"other",text:"항공권/보증금 30만원만 먼저 입금하면 자리 확정됩니다. 출국 후 환급돼요."},
+    {type:"q",prompt:"보증금/선입금을 요구하면?",
+      choices:[
+        {text:"중단하고 차단, 공식 채용 여부를 별도로 확인", score:+20, why:"취업/알바에서 선입금 요구는 고위험 신호입니다.",
+         vector:V(+2,0,0,+1,+2,+2), reply:"선입금은 못 합니다. 여기서 중단할게요."},
+        {text:"환급이라니 보내본다", score:-20, why:"‘환급’은 안심시키는 말일 뿐입니다.",
+         vector:V(-2,0,0,-1,-2,-2), reply:"소액이니 보내볼게요."}
+      ]}
+  ]
+};
+
+window.SCENARIOS.exp_m_loan_refund = {
+  type:"messenger",
+  ui:"sms",
+  title:"대출 이자 환급(문자)",
+  notify:{ title:"", body:"대출 이자 환급 안내 문자가 도착했어요." },
+  header:{ title:"문자메시지", sub:"환급 안내" },
+  keyPoints:["환급은 공식 채널에서만","링크 클릭 금지","개인정보/인증 입력 금지"],
+  oneLiner:"‘환급’ 문자는 링크 클릭 대신 금융사 앱/정부 공식 사이트에서 확인하세요.",
+  steps:[
+    {type:"msg",from:"other",text:"[환급] 대출 이자 환급 대상입니다. 신청: http://bit.ly/refund-xx"},
+    {type:"q",prompt:"환급 링크 문자를 받으면?",
+      choices:[
+        {text:"링크 클릭 대신 금융사 앱/공식 사이트에서 직접 확인", score:+20, why:"피싱은 ‘환급/지원금’으로 클릭을 유도합니다.",
+         vector:V(+2,+2,0,+1,0,+2), reply:"링크는 안 누르고 공식 앱에서 확인할게요."},
+        {text:"링크 눌러서 개인정보 입력", score:-20, why:"개인정보/인증정보 탈취로 이어질 수 있어요.",
+         vector:V(-1,-2,-2,-1,-2,-2), reply:"링크 눌러서 신청할게요."}
+      ]}
+  ]
+};
+
+window.SCENARIOS.exp_m_romance = {
+  type:"messenger",
+  ui:"kakao",
+  speedMs: 1200,
+  title:"통장 묶기(지급정지 협박)",
+  notify:{ title:"카톡", body:"모르는 사람에게서 메시지가 왔어요." },
+  header:{ title:"미등록 연락처", sub:"계좌 관련 문의" },
+  keyPoints:[
+    "모르는 소액 입금(‘핑돈’)이 와도 임의로 되돌려 보내지 않기",
+    "‘지급정지(통장 묶기) 신청하겠다’ 협박은 통제 신호",
+    "반환/조치는 ‘은행/공식 절차’로만(상대가 주는 계좌/링크 금지)"
+  ],
+  oneLiner:"‘지급정지 신청’ 협박이 와도, 상대가 주는 계좌/링크로 처리하지 말고 은행 공식 절차로 확인하세요.",
+  steps:[
+    {type:"msg",from:"other",text:"안녕하세요. 방금 제가 실수로 50,000원을 잘못 보냈어요."},
+    {type:"msg",from:"other",text:"지금 바로 돌려주셔야 합니다. 급해서요."},
+
+    {type:"q",prompt:"모르는 사람에게서 ‘착오송금’이라며 반환을 요구하면, 가장 안전한 첫 행동은?",
+      choices:[
+        {text:"상대 안내 계좌로 바로 송금하지 않고, 은행 앱/대표번호로 ‘착오송금/반환 절차’ 확인", score:+20,
+          feedback:"‘내가 직접 은행 공식 경로로 확인’이 핵심입니다.",
+          why:"사기는 ‘급함’을 앞세워 ‘즉시 송금’으로 끌고 갑니다.",
+          vector: V(+2,0,0,+2,0,+2),
+          reply:"바로 송금은 못 합니다. 은행에 먼저 확인하고 공식 절차로 처리할게요."
+        },
+        {text:"문제 생길까 봐 상대가 준 계좌로 바로 돌려준다", score:-20,
+          feedback:"즉시 송금은 추가 갈취로 이어질 수 있어요.",
+          why:"정상 반환도 ‘공식 절차’가 안전합니다.",
+          vector: V(-2,0,0,-2,-2,-1),
+          reply:"알겠습니다. 계좌 주시면 바로 보내드릴게요."
+        }
+      ]
+    },
+
+    {type:"msg",from:"other",text:"지금 안 보내면 제가 ‘지급정지 신청’ 넣어서 통장 묶이게 할 거예요."},
+    {type:"msg",from:"other",text:"그럼 출금/이체 다 막힙니다. 합의금이라도 보내세요."},
+
+    {type:"q",prompt:"상대가 ‘통장 묶기(지급정지)’를 언급하며 합의금/추가금 송금을 요구하면?",
+      choices:[
+        {text:"협박 신호로 보고 중단 + 대화/계좌/링크 증거 저장 + 은행 고객센터로 공식 절차 확인", score:+20,
+          feedback:"‘지급정지/고소 협박→합의금’은 전형적인 통제 패턴입니다.",
+          why:"돈을 보내면 추가 요구가 반복되기 쉽고 회수도 어렵습니다.",
+          vector: V(+2,0,0,+2,+2,+2),
+          reply:"협박/합의금 요구는 응하지 않겠습니다. 기록 남기고 은행에 공식 확인하겠습니다."
+        },
+        {text:"통장이 묶일까 봐 요구하는 돈을 보내고 끝낸다", score:-20,
+          feedback:"불안(손해 회피) 심리를 노립니다.",
+          why:"한 번 보내면 ‘추가 합의금/수수료’로 확대될 수 있어요.",
+          vector: V(-2,0,0,-2,-2,-2),
+          reply:"통장 묶이면 큰일이니… 보내고 끝낼게요."
+        }
+      ]
+    },
+
+    {type:"msg",from:"other",text:"은행 절차 복잡해요. 링크 보내드릴게요. 여기서 ‘지급정지 해제’ 신청하면 끝나요."},
+    {type:"msg",from:"other",text:"(앱 설치 필요할 수도 있어요) example.account-help"},
+
+    {type:"q",prompt:"‘지급정지 해제/반환’ 명목으로 링크 접속이나 앱 설치를 유도하면?",
+      choices:[
+        {text:"링크/설치 거부. 은행 앱/대표번호로만 확인", score:+20,
+          feedback:"링크/앱 설치 유도는 피싱·악성앱 단계일 수 있어요.",
+          why:"공식 절차는 ‘내가 직접’ 은행 채널로 확인해야 합니다.",
+          vector: V(+2,+2,+2,+1,0,+2),
+          reply:"링크는 안 누릅니다. 은행 공식 채널로만 확인하겠습니다."
+        },
+        {text:"해제 빨리 하려면 링크로 들어가서 처리한다", score:-20,
+          feedback:"가짜 페이지는 진짜처럼 꾸며져 있어요.",
+          why:"정보 입력/권한 부여로 피해가 커질 수 있습니다.",
+          vector: V(0,-2,-2,-2,0,-1),
+          reply:"빨리 끝내야 하니 링크로 처리할게요…"
+        }
+      ]
+    },
+
+    {type:"q",prompt:"안전하게 마무리하는 방법은?",
+      choices:[
+        {text:"대화/계좌/링크 기록 → 차단 → 은행 고객센터로 공식 확인", score:+10,
+          feedback:"기록+차단+공식 확인이 2차 피해를 막습니다.",
+          why:"유사 수법이 반복됩니다.",
+          vector: V(+1,0,0,0,+1,+2),
+          reply:"기록 남기고 차단하겠습니다. 은행에도 직접 확인할게요."
+        },
+        {text:"그냥 무시하고 삭제한다", score:-5,
+          feedback:"최소한 기록/차단/공식 확인까지 하면 더 안전합니다.",
+          why:"재접근 가능성이 있어요.",
+          vector: V(0,0,0,0,0,-1),
+          reply:"그냥 지울게요."
+        }
+      ]
+    }
+  ]
+};
+
+window.SCENARIOS.exp_m_job_highpay = {
+  type:"messenger",
+  ui:"kakao",
+  title:"고수익 알바사기(메신저)",
+  notify:{ title:"", body:"쉬운 일로 고수익 가능하다는 메시지가 왔어요." },
+  header:{ title:"알바 채용", sub:"당일정산" },
+  keyPoints:["쉽고 고수익은 의심","선입금/교육비 요구=중단","OTP 요구는 절대 금지"],
+  oneLiner:"‘선입금/교육비/OTP’는 고수익 알바사기의 핵심 신호입니다.",
+  steps:[
+    {type:"msg",from:"other",text:"하루 30분, 단순 작업으로 당일정산 20만원 가능!"},
+    {type:"msg",from:"other",text:"시작하려면 교육비 3만원만 먼저 결제해주세요."},
+    {type:"q",prompt:"교육비/선입금을 요구하면?",
+      choices:[
+        {text:"즉시 중단하고 차단/신고 고려", score:+20, why:"선입금 요구는 사기 가능성이 큽니다.",
+         vector:V(+1,0,0,+1,+2,+2), reply:"선입금 요구는 못 합니다. 중단할게요."},
+        {text:"소액이니 결제한다", score:-20, why:"결제 이후 추가 요구로 확대됩니다.",
+         vector:V(-2,0,-1,-1,-2,-2), reply:"소액이니 결제할게요."}
+      ]},
+    {type:"msg",from:"other",text:"인증번호(OTP) 오면 알려주시면 바로 수익 지급돼요."},
+    {type:"q",prompt:"OTP를 요구하면?",
+      choices:[
+        {text:"절대 공유하지 않는다", score:+20, why:"OTP 공유는 계정/결제 탈취로 이어질 수 있어요.",
+         vector:V(+2,0,+2,+1,0,+2), reply:"OTP는 절대 공유 못 해요."},
+        {text:"알려준다", score:-20, why:"즉시 피해가 발생할 수 있습니다.",
+         vector:V(-2,0,-2,-2,-2,-2), reply:"알려드릴게요."}
+      ]}
+  ]
+};
+
+window.SCENARIOS.exp_c_noshow = {
+  type:"call",
+  title:"노쇼사기(전화)",
+  incoming:{ name:"단체예약 고객", number:"010-33XX-5X23" },
+  voiceUrl: "https://koreapolkim.github.io/vv/no.mp3", // ✅ 추가
+  keyPoints:["큰 예약으로 신뢰 확보","대리구매/선결제 요구=중단","공식 거래/결제 절차 확인"],
+  oneLiner:"단체예약 후 ‘대리구매 선결제’ 요구는 노쇼사기 패턴입니다.",
+  steps:[
+    {type:"line",from:"other",text:"사장님 오늘 저녁 단체 30명 예약 가능한가요? 바로 확정할게요."},
+    {type:"line",from:"other",text:"대신 거래처에서 와인/상품을 제가 못 사서… 사장님이 대신 구매하고 결제해주시면 현장에 같이 정산할게요."},
+    {type:"q",prompt:"‘대리구매+선결제’ 요구가 나오면?",
+      choices:[
+        {text:"거절하고 예약 자체도 재확인(보증금/공식 절차)", score:+20, why:"노쇼사기는 ‘대리구매 선결제’로 피해를 만듭니다.",
+         vector:V(+2,0,0,+1,+2,+2), reply:"대리구매/선결제는 어렵습니다. 예약도 공식 절차로만 진행할게요."},
+        {text:"큰손님이니 믿고 진행", score:-20, why:"선결제가 발생하면 회수 어렵습니다.",
+         vector:V(-2,0,0,-1,-2,-2), reply:"알겠습니다. 제가 먼저 결제할게요."}
+      ]}
+  ]
+};
+
+window.SCENARIOS.exp_c_investigation = {
+  type:"call",
+  title:"수사기관 사칭(전화)",
+  incoming:{ name:"○○지검 수사관", number:"010-21XX-3X44" },
+  voiceUrl: "https://koreapolkim.github.io/vv/gum.mp3", // ✅ 추가
+  keyPoints:["권위/협박으로 통제","비밀 유지 지시 주의","안전계좌=대표 사기 문구"],
+  oneLiner:"수사기관이 ‘비밀’ ‘안전계좌 송금’을 요구하면 사기 가능성이 매우 큽니다.",
+  steps:[
+    {type:"line",from:"other",text:"고객님 명의가 범죄에 연루돼서요. 지금부터 통화 내용은 비밀입니다."},
+    {type:"line",from:"other",text:"자산 보호 위해 안전계좌로 이체해야 합니다."},
+    {type:"q",prompt:"‘비밀 유지’ + ‘안전계좌 송금’ 지시가 나오면?",
+      choices:[
+        {text:"통화 종료 후 112/금융사 공식번호로 확인·신고", score:+20, why:"공식기관은 안전계좌 송금을 요구하지 않습니다.",
+         vector:V(+2,0,0,+2,+2,+2), reply:"지금 통화 종료하고 112와 공식 번호로 확인하겠습니다."},
+        {text:"겁나서 송금한다", score:-20, why:"송금이 목표입니다.",
+         vector:V(-2,0,0,-2,-2,-2), reply:"알겠습니다. 보내겠습니다."}
+      ]}
+  ]
+};
+
+window.SCENARIOS.exp_c_self_hostage = {
+  type:"call",
+  title:"셀프 감금(전화)",
+  incoming:{ name:"보안담당", number:"010-98XX-7X68" },
+  voiceUrl: "https://koreapolkim.github.io/vv/self.mp3", // ✅ 추가
+  keyPoints:["혼자 있게 만들기","통화 유지 강요","ATM/현금 지시=위험"],
+  oneLiner:"통화를 끊지 말라며 이동/현금화를 시키면 즉시 끊고 주변에 도움을 요청하세요.",
+  steps:[
+    {type:"line",from:"other",text:"지금부터 누구에게도 말하면 안 됩니다. 혼자 계신 곳으로 이동하세요."},
+    {type:"line",from:"other",text:"통화 끊지 말고 ATM으로 가서 현금 인출하세요."},
+    {type:"q",prompt:"‘통화 유지’ ‘혼자 이동’ ‘ATM 지시’가 나오면?",
+      choices:[
+        {text:"즉시 통화 종료 + 가족/112에 도움 요청", score:+20, why:"고립시켜 판단을 막는 전형적 수법입니다.",
+         vector:V(+2,0,0,+2,+2,+2), reply:"지금 끊고 가족/112에 연락하겠습니다."},
+        {text:"지시에 따른다", score:-20, why:"피해가 커질 수 있어요.",
+         vector:V(-2,0,0,-2,-2,-2), reply:"알겠습니다…"}
+      ]}
+  ]
+};
+
+window.SCENARIOS.exp_c_loan_switch = {
+  type:"call",
+  title:"대출 이자 인하 갈아타기 피싱(전화)",
+  incoming:{ name:"대출갈아타기 상담센터", number:"010-77XX-9X00" },
+  voiceUrl: "https://koreapolkim.github.io/vv/dae.mp3", // ✅ 추가
+  keyPoints:["저금리 전환·한도 상향 미끼","선입금/수수료 요구=중단","원격/앱 설치/안전계좌는 고위험"],
+  oneLiner:"저금리 갈아타기라며 ‘선입금/원격/안전계좌’를 요구하면 사기 가능성이 큽니다.",
+  steps:[
+    {type:"line",from:"other",text:"고객님 기존 대출 금리가 높아서요. 갈아타기로 금리 2%대 가능하세요."},
+    {type:"q",prompt:"이런 전화가 오면 첫 행동은?",
+      choices:[
+        {text:"끊고 내가 직접 금융사 공식 고객센터/앱에서 확인", score:+20, why:"사기는 전화로 서두르게 만들어 검증을 막습니다.",
+         vector:V(+2,0,0,+2,0,+2), reply:"전화로 진행은 안 하고 공식 채널로 직접 확인하겠습니다."},
+        {text:"상담대로 진행", score:-15, why:"검증 없이 진행하면 설치/송금 단계로 이어질 수 있어요.",
+         vector:V(-1,0,0,-2,0,-1), reply:"진행해볼게요."}
+      ]},
+    {type:"line",from:"other",text:"진행 수수료 30만원만 먼저 입금하시면 승인 후 환급됩니다."},
+    {type:"q",prompt:"수수료/보증금 선입금을 요구하면?",
+      choices:[
+        {text:"즉시 중단", score:+20, why:"‘선입금’은 대표 수법입니다.",
+         vector:V(+1,0,0,+1,+2,+1), reply:"선입금은 못 합니다. 중단하겠습니다."},
+        {text:"소액이니 보낸다", score:-20, why:"송금 순간 피해가 시작됩니다.",
+         vector:V(-2,0,0,-1,-2,-2), reply:"보내볼게요."}
+      ]},
+    {type:"line",from:"other",text:"보안 앱 설치 후 접근성/문자 권한 허용하면 원격으로 처리해드립니다."},
+    {type:"q",prompt:"앱 설치/원격/접근성 권한 요구가 나오면?",
+      choices:[
+        {text:"절대 거절 + 공식 채널로 확인", score:+20, why:"원격/접근성 권한은 금융앱 제어로 직결될 수 있습니다.",
+         vector:V(+2,+1,+2,+1,0,+2), reply:"앱 설치/원격은 못 합니다. 공식 채널로만 확인하겠습니다."},
+        {text:"설치한다", score:-20, why:"통제권을 빼앗길 수 있어요.",
+         vector:V(-2,-1,-2,-1,-2,-2), reply:"설치할게요…"}
+      ]}
+  ]
+};
+
+/* === 시작 === */
+applyLayoutMode("home");
+go("home",{},true);
+</script>
+
+
+<!-- ===시나리오 시작 === -->
+
+<script>
+/* === 리스트(사례보기) === */
+window.DATA_CATEGORIES = {
+  kakao:   { label:"카톡 사칭",   chip:"purple" },
+  sms:     { label:"문자 스미싱", chip:"orange" },
+  call:    { label:"전화 사기",   chip:"red" },
+  job:     { label:"취업/알바",   chip:"green" },
+  romance: { label:"로맨스",     chip:"blue" },
+};
+
+window.CASES = [
+  {
+    id:"case_family",
+    title:"가족사칭",
+    subtitle:"새 번호 · 통화 회피 · 인증번호(OTP) 요구",
+    category:"kakao",
+    experienceId:"exp_m_family",
+    info:{
+      victims:["부모님/보호자"],
+      keywords:["새 번호,","긴급,","링크,","OTP,"],
+      summary:"자녀를 사칭해 급한 상황을 만들고 링크/인증번호로 결제 승인을 유도합니다."
+    }
+  },
+  {
+    id:"case_smishing",
+    title:"물품 반송",
+    subtitle:"배송/반송 미끼 · 단축URL · 앱 설치/권한 요구",
+    category:"sms",
+    experienceId:"exp_m_smishing",
+    info:{
+      victims:["전 연령(특히 스마트폰 사용자)"],
+      keywords:["배송,","단축URL,","앱 설치,","권한"],
+      summary:"문자 링크 클릭 → 악성앱 설치/권한 허용로 이어질 수 있습니다."
+    }
+  },
+  {
+    id:"case_agency",
+    title:"기관사칭",
+    subtitle:"계정 잠김 공포 · 링크/인증 유도 · 원격/상담 유도",
+    category:"kakao",
+    experienceId:"exp_m_agency",
+    info:{
+      victims:["금융앱 이용자"],
+      keywords:["보안센터,","해외로그인,","인증번호,","원격"],
+      summary:"불안을 유발해 ‘지금 처리’하게 만들고 인증/링크로 계정 탈취를 시도합니다."
+    }
+  },
+
+  /* ✅ 분리: 청첩장 */
+  {
+    id:"case_wedding_smish",
+    title:"청첩장 스미싱",
+    subtitle:"지인 사칭 · 단축URL · ‘초대장 보기’ 앱설치·권한 유도",
+    category:"sms",
+    experienceId:"exp_m_wedding_smish",
+    info:{
+      victims:["전 연령(지인 연락이 잦은 사용자)"],
+      keywords:["모바일청첩장,","단축URL,","앱설치,","권한"],
+      summary:"지인(청첩장)을 가장해 링크 클릭을 유도하고 악성앱 설치·권한 허용으로 정보/금융피해로 이어질 수 있습니다."
+    }
+  },
+
+  /* ✅ 분리: 부고장 */
+  {
+    id:"case_obit_smish",
+    title:"부고장 스미싱",
+    subtitle:"지인 사칭 · 단축URL · ‘부고장 확인’ 앱설치·권한 유도",
+    category:"sms",
+    experienceId:"exp_m_obit_smish",
+    info:{
+      victims:["전 연령(지인 연락이 잦은 사용자)"],
+      keywords:["부고장,","단축URL,","앱설치,","권한"],
+      summary:"지인(부고)을 가장해 링크 클릭을 유도하고 악성앱 설치·권한 허용으로 정보/금융피해로 이어질 수 있습니다."
+    }
+  },
+
+  /* ✅ 추가: 대출금리 갈아타기 (전화형) */
+  {
+    id:"case_loan_refi_rate",
+    title:"대출금리 갈아타기 사칭",
+    subtitle:"금리인하/사전승인 미끼 · 원격/앱 설치 유도 · 수수료/인증 요구",
+    category:"call",
+    experienceId:"exp_c_loan_refi_rate",
+    info:{
+      victims:["대출 이용자/금리 비교 서비스 이용자"],
+      keywords:["갈아타기,","금리인하,","사전승인,","원격,","수수료,","OTP"],
+      summary:"‘금리 인하/갈아타기 승인’으로 믿게 만든 뒤 원격앱 설치·수수료·OTP/인증으로 탈취를 시도합니다."
+    }
+  },
+
+  {
+    id:"case_cambodia_job",
+    title:"해외 취업사기",
+    subtitle:"고수익 미끼 · 여권/신분증 요구 · 보증금 선입금",
+    category:"job",
+    experienceId:"exp_m_cambodia_job",
+    info:{
+      victims:["구직자"],
+      keywords:["해외취업,","여권,","신분증","보증금"],
+      summary:"해외 고수익을 미끼로 서류/돈을 먼저 요구하며 고립(비밀)을 유도합니다."
+    }
+  },
+  {
+    id:"case_noshow",
+    title:"노쇼사기",
+    subtitle:"단체예약 신뢰 확보 → 대리구매/선결제 유도",
+    category:"call",
+    experienceId:"exp_c_noshow",
+    info:{
+      victims:["자영업자/소상공인"],
+      keywords:["단체예약,","공문,","대리구매,","선결제"],
+      summary:"큰 주문으로 믿게 만든 뒤 ‘대리구매 선결제’로 피해를 만듭니다."
+    }
+  },
+  {
+    id:"case_investigation",
+    title:"수사기관 사칭",
+    subtitle:"협박/공포 · 비밀 유지 · 안전계좌 송금/앱 설치",
+    category:"call",
+    experienceId:"exp_c_investigation",
+    info:{
+      victims:["고령층/불안에 취약한 사용자"],
+      keywords:["사건번호,","안전계좌,","보안앱,","송금"],
+      summary:"권위로 압박해 통제하고 송금·설치 단계로 끌고 갑니다."
+    }
+  },
+  {
+    id:"case_self_hostage",
+    title:"셀프 감금",
+    subtitle:"혼자 있게 함 · 통화 끊지 말라 · ATM/현금화 지시",
+    category:"call",
+    experienceId:"exp_c_self_hostage",
+    info:{
+      victims:["고령층/혼자 있는 사람"],
+      keywords:["고립,","통화유지,","ATM,","현금"],
+      summary:"통화 유지로 통제하며 이동/현금화를 시켜 피해를 키웁니다."
+    }
+  },
+  {
+    id:"case_loan_refund",
+    title:"대출 이자 환급",
+    subtitle:"환급/서류 미끼 · 링크 클릭 · 개인정보/인증 입력",
+    category:"sms",
+    experienceId:"exp_m_loan_refund",
+    info:{
+      victims:["대출 이용자"],
+      keywords:["환급,","서류,","단축링크,","인증입력"],
+      summary:"‘환급’으로 클릭을 유도하고 개인정보/인증 입력으로 탈취를 시도합니다."
+    }
+  },
+  {
+  id:"case_romance",
+  title:"통장 묶기(지급정지 협박)",
+  subtitle:"소액 입금 · 착오송금 주장 · 지급정지/고소 협박 · 합의금 요구",
+  category:"kakao",
+  experienceId:"exp_m_romance",
+  info:{
+    victims:["전 연령(계좌 사용자)"],
+    keywords:["소액입금,","착오송금,","지급정지,","통장묶기,","합의금,","고소협박"],
+    summary:"모르는 소액이 입금된 뒤 ‘착오송금’이라며 반환을 요구하고, 지급정지(통장 묶기)·고소로 협박해 합의금/추가송금을 유도합니다."
+  }
+},
+  {
+    id:"case_job_highpay",
+    title:"고수익 알바사기",
+    subtitle:"쉬운 일+고수익 · 선입금(교육비) · OTP 요구",
+    category:"job",
+    experienceId:"exp_m_job_highpay",
+    info:{
+      victims:["구직자/부업 찾는 사람"],
+      keywords:["당일정산,","선입금,","교육비,","OTP"],
+      summary:"소액 선입금으로 시작해 인증/추가 결제로 확대되는 유형입니다."
+    }
+  }
+];
+</script>
+
+<script>
+/* ✅ 청첩장 스미싱(문자) — 문제/답은 네 원본(exp_c_deepfake)의 ‘청첩장 파트(q1,q2)’만 그대로 */
+window.SCENARIOS.exp_m_wedding_smish = {
+  type:"messenger",
+  ui:"sms",
+  speedMs: 1200,
+  title:"청첩장 스미싱(문자)",
+  notify:{ title:"문자메시지", body:"‘청첩장’ 안내 문자가 도착했어요." },
+  header:{ title:"문자메시지", sub:"초대장 알림" },
+  keyPoints:[
+    "청첩장 링크는 클릭 전 ‘지인에게 직접 확인’",
+    "단축URL/낯선 도메인은 특히 위험",
+    "앱 설치·권한(문자/알림/접근성) 요구=즉시 중단"
+  ],
+  oneLiner:"청첩장 링크는 누르지 말고, 지인에게 직접 확인한 뒤 공식 경로로만 확인하세요.",
+  steps:[
+    {type:"msg",from:"other",text:"[모바일청첩장] 민정❤현우 결혼식에 초대합니다."},
+    {type:"msg",from:"other",text:"일시: 10/19(토) 오후 1:00  장소: ○○웨딩홀"},
+    {type:"msg",from:"other",text:"초대장 보기: http://bit.ly/invite-2025 (모바일에서만 열림)"},
+    {type:"msg",from:"other",text:"※ 링크가 안 열리면 ‘초대장 뷰어’ 설치 후 다시 시도해 주세요."},
+
+    {type:"q",prompt:"청첩장 문자의 ‘링크’가 왔을 때 가장 안전한 첫 행동은?",
+      choices:[
+        {text:"링크를 누르지 않고, 발신 지인에게 직접 전화/카톡으로 확인", score:+20,
+          feedback:"지인 사칭 스미싱은 ‘직접 확인’이 가장 효과적입니다.",
+          why:"청첩장/부고장은 감정·호기심을 자극해 클릭을 유도합니다.",
+          vector: V(+2,+2,0,+1,0,+2),
+          reply:"링크는 안 누를게. 먼저 너한테 직접 연락해서 진짜인지 확인할게."
+        },
+        {text:"내용이 그럴듯하니 링크만 눌러서 확인", score:-20,
+          feedback:"‘그럴듯함’이 바로 함정일 수 있어요.",
+          why:"단축 URL은 목적지를 숨길 수 있습니다.",
+          vector: V(0,-2,0,-1,0,-1),
+          reply:"일단 링크 눌러서 확인해볼게."
+        }
+      ]
+    },
+
+    {type:"msg",from:"other",text:"[안내] 보안 업데이트가 필요합니다. 초대장 열람을 위해 ‘초대장 뷰어.apk’ 설치가 필요해요."},
+    {type:"msg",from:"other",text:"설치 후 ‘문자/알림/접근성’ 권한을 허용하면 초대장을 바로 볼 수 있습니다."},
+
+    {type:"q",prompt:"문자에서 ‘apk 설치’ + ‘문자/접근성 권한’까지 요구하면?",
+      choices:[
+        {text:"즉시 중단/삭제/차단. 악성앱 의심 → 모바일 백신 점검/신고", score:+20,
+          feedback:"설치+권한요구는 스미싱의 핵심 단계입니다.",
+          why:"문자 가로채기/원격조작/소액결제 등으로 이어질 수 있어요.",
+          vector: V(+2,+2,+2,+1,0,+2),
+          reply:"이건 위험해. 설치 안 하고 삭제/차단한 뒤 점검하고 신고할게."
+        },
+        {text:"초대장만 보면 되니 설치하고 권한도 허용", score:-20,
+          feedback:"‘보기만’이 아니라 권한으로 제어권을 뺏길 수 있어요.",
+          why:"접근성/문자 권한은 특히 고위험입니다.",
+          vector: V(-1,-2,-2,-1,-2,-2),
+          reply:"그럼 설치해서 빨리 볼게…"
+        }
+      ]
+    }
+  ]
+};
+</script>
+
+<script>
+/* ✅ 부고장 스미싱(문자) — 문제/답은 네 원본(exp_c_deepfake)의 ‘부고 파트(q3,q4)’만 그대로 */
+window.SCENARIOS.exp_m_obit_smish = {
+  type:"messenger",
+  ui:"sms",
+  speedMs: 1200,
+  title:"부고장 스미싱(문자)",
+  notify:{ title:"문자메시지", body:"‘부고장’ 안내 문자가 도착했어요." },
+  header:{ title:"문자메시지", sub:"부고 알림" },
+  keyPoints:[
+    "부고 링크는 클릭 전 ‘가족/지인에게 직접 확인’",
+    "단축URL/낯선 도메인은 특히 위험",
+    "앱 설치·권한(문자/알림/접근성) 요구=즉시 중단"
+  ],
+  oneLiner:"부고장 링크는 누르지 말고, 가족/지인에게 직접 확인한 뒤 공식 경로로만 확인하세요.",
+  steps:[
+    {type:"msg",from:"other",text:"[부고] 故 김○○님 별세"},
+    {type:"msg",from:"other",text:"상주: 김○○  발인: 10/05 07:00  빈소: ○○장례식장"},
+    {type:"msg",from:"other",text:"부고장 확인: http://bit.ly/obit-2025 (모바일 전용)"},
+    {type:"msg",from:"other",text:"장례식장 위치/조문 안내는 링크에서 확인해 주세요."},
+
+    {type:"q",prompt:"부고장 링크가 왔을 때 가장 안전한 확인 방법은?",
+      choices:[
+        {text:"링크 클릭 전, 가족/지인에게 사실 확인(전화/기존 대화방)", score:+20,
+          feedback:"부고/청첩장 링크는 ‘확인 후’가 원칙입니다.",
+          why:"감정이 흔들릴 때 클릭이 가장 쉬워져요.",
+          vector: V(+2,+2,0,+1,0,+2),
+          reply:"부고는 더 조심해야 해. 링크 누르기 전에 가족/지인에게 먼저 확인할게."
+        },
+        {text:"급한 소식이니 바로 링크로 확인", score:-15,
+          feedback:"급할수록 ‘멈춤’이 필요합니다.",
+          why:"사기는 ‘급함’을 이용합니다.",
+          vector: V(-1,-2,0,-2,0,-1),
+          reply:"급하니까 링크로 바로 확인할게…"
+        }
+      ]
+    },
+
+    {type:"msg",from:"other",text:"[안내] 부고장 이미지를 보려면 ‘부고장 뷰어’ 설치가 필요합니다."},
+    {type:"msg",from:"other",text:"설치 후 ‘알림/문자 접근’ 허용 시, 조문 안내가 자동 저장됩니다."},
+
+    {type:"q",prompt:"마지막으로, 이런 문자를 받았을 때 가장 좋은 마무리 행동은?",
+      choices:[
+        {text:"문자 캡처 + 발신번호/링크 기록 → 차단/신고(112/118 등) + 주변에 공유", score:+10,
+          feedback:"기록/공유가 2차 피해를 줄입니다.",
+          why:"주변에서도 같은 문자를 받을 수 있어요.",
+          vector: V(+1,0,0,0,0,+2),
+          reply:"캡처해두고 차단/신고할게. 주변에도 ‘링크 누르지 말라’고 공유하겠어."
+        },
+        {text:"그냥 삭제하고 끝낸다", score:-5,
+          feedback:"신고/공유가 피해 확산을 막는 데 도움이 됩니다.",
+          why:"스미싱은 반복 전파가 많습니다.",
+          vector: V(0,0,0,0,0,-1),
+          reply:"그냥 삭제할게."
+        }
+      ]
+    }
+  ]
+};
+</script>
+
+<script>
+/* ✅ 대출금리 갈아타기 사칭(전화) — 새로 만든 시나리오(전화형) + 문항/피드백 “긴 버전” */
+window.SCENARIOS.exp_c_loan_refi_rate = {
+
+  type:"call",
+
+  speedMs: 1250,
+
+  title:"대출금리 갈아타기 사칭(전화)",
+
+  incoming:{ name:"대출갈아타기 전담센터", number:"010-77XX-3X98" },
+
+  voiceUrl: "https://koreapolkim.github.io/vv/dae.mp3", // ✅ 추가
+
+  keyPoints:[
+    "‘사전승인/오늘 마감’으로 조급함 유도",
+    "상대가 주는 번호/링크 말고 ‘내가 직접’ 공식 채널 확인",
+    "원격앱·APK 설치/권한·OTP·수수료 요구=즉시 중단"
+  ],
+
+  oneLiner:"‘갈아타기 승인’이라며 급하게 진행시키면 끊고, 은행/공식 앱에서 직접 확인하세요.",
+
+  steps:[
+
+    {type:"line",from:"other",text:"안녕하세요 고객님. 대출금리 갈아타기 전담센터입니다. 고객님 ‘금리인하 사전승인’이 확인돼 연락드렸습니다."},
+    {type:"line",from:"other",text:"현재 금리보다 1~2%p 낮아질 수 있고요. 오늘 안에 접수만 하시면 적용 가능성이 높습니다."},
+    {type:"line",from:"other",text:"통화로 3분만에 진행 도와드릴게요. 지금 잠깐 가능하실까요?"},
+
+    {type:"q",prompt:"이런 전화를 받았을 때 ‘가장 먼저’ 해야 할 행동은?",
+      choices:[
+        {text:"통화는 끊고, 내가 직접 은행/대출비교 앱의 ‘갈아타기’ 메뉴 또는 공식 대표번호로 사실 확인", score:+20,
+          feedback:"‘내가 직접 공식 경로로 확인’이 가장 안전합니다.",
+          why:"사기는 ‘사전승인/오늘 마감’으로 급하게 결정을 유도해 검증을 막습니다.",
+          vector: V(+2,0,0,+2,0,+2),
+          reply:"진행은 통화로 안 할게요. 끊고 은행/공식 앱에서 직접 확인하겠습니다."
+        },
+        {text:"조건이 좋아 보여서 일단 상담을 계속 듣고 진행한다", score:-10,
+          feedback:"상담을 계속 듣는 동안 ‘원격/설치/인증’ 단계로 자연스럽게 넘어갈 수 있어요.",
+          why:"사기는 단계적으로 신뢰를 쌓고, 마지막에 인증·송금 같은 핵심 행동을 시킵니다.",
+          vector: V(0,0,0,-1,-1,-1),
+          reply:"네, 일단 설명 듣고 진행해볼게요."
+        }
+      ]
+    },
+
+    {type:"line",from:"other",text:"고객님 이거 요즘 다들 하시는 거라서요. 오래 걸리는 거 싫어하시면 제가 빠르게 정리해서 접수만 넣어드릴게요."},
+    {type:"line",from:"other",text:"다만 요건 확인 때문에 본인 인증이 필요합니다. 지금 문자로 링크 하나 보내드릴게요. 그거 들어가시면 됩니다."},
+
+    {type:"q",prompt:"상대가 ‘문자 링크로 접속’ 또는 ‘링크에서 본인확인’이라며 유도하면?",
+      choices:[
+        {text:"링크는 누르지 않는다. 직접 앱/홈페이지에서 ‘갈아타기/금리인하’ 메뉴로 확인하고 필요 시 대표번호로 콜백", score:+20,
+          feedback:"링크 대신 ‘직접 접속’이 원칙입니다.",
+          why:"문자 링크는 피싱 페이지/악성앱 설치로 이어지기 쉬워요. 특히 ‘인증’이 들어가면 위험도가 급상승합니다.",
+          vector: V(+2,+2,0,+2,0,+1),
+          reply:"링크는 안 누릅니다. 제가 직접 앱/홈페이지로 들어가서 확인할게요."
+        },
+        {text:"상담원이 안내하니 링크로 들어가서 확인한다", score:-20,
+          feedback:"가짜 페이지는 진짜처럼 꾸며져 있어 ‘그럴듯함’으로는 구분이 어렵습니다.",
+          why:"링크로 들어가면 정보 입력/설치 유도가 이어질 수 있어요.",
+          vector: V(0,-2,0,-2,0,-1),
+          reply:"네 링크로 들어가볼게요."
+        }
+      ]
+    },
+
+    {type:"line",from:"other",text:"아, 링크가 가끔 느려서요. 원활하게 보시려면 ‘원격지원 앱’으로 제가 화면 보면서 도와드릴게요."},
+    {type:"line",from:"other",text:"앱 설치 후 ‘접근성/알림/화면공유’ 권한만 허용하시면 제가 대신 신청 화면까지 입력해드릴 수 있습니다."},
+
+    {type:"q",prompt:"상대가 ‘원격지원/화면공유 앱 설치’와 ‘접근성/권한 허용’을 요구하면?",
+      choices:[
+        {text:"즉시 중단. 원격앱/접근성 권한 요구는 고위험 → 통화 종료 후 차단/신고 및 기기 점검", score:+20,
+          feedback:"원격/접근성 권한은 ‘폰 조종’으로 이어지는 핵심 단계입니다.",
+          why:"사기는 ‘도와주겠다’는 말로 권한을 얻고, 이후 인증·이체·앱 조작을 대신 시도할 수 있어요.",
+          vector: V(+2,+2,+2,+1,0,+2),
+          reply:"원격앱/접근성 권한은 못 합니다. 여기서 중단하겠습니다."
+        },
+        {text:"금리만 바꾸는 거니까 잠깐 원격 허용한다", score:-20,
+          feedback:"‘잠깐’이 가장 위험합니다. 한 번 허용되면 통제가 가능합니다.",
+          why:"원격/접근성 권한은 피해 회수도 어렵게 만들어요.",
+          vector: V(-2,-2,-2,-1,-2,-2),
+          reply:"잠깐이면 괜찮겠죠… 원격으로 도와주세요."
+        }
+      ]
+    },
+
+    {type:"line",from:"other",text:"고객님 요건 심사 때문에 서류 확인이 필요해요. 신분증 앞뒤 사진이랑, 대출 잔액 보이는 화면 캡처만 보내주시면 됩니다."},
+    {type:"line",from:"other",text:"카톡/문자로 보내주시면 제가 접수 서류로 올려드릴게요. 바쁘시잖아요."},
+
+    {type:"q",prompt:"신분증/대출정보 캡처 등 민감정보를 ‘메신저/문자’로 보내달라고 하면?",
+      choices:[
+        {text:"거절. 서류는 은행/공식 앱·홈페이지의 정식 업로드 경로로만 제출", score:+20,
+          feedback:"민감정보는 ‘공식 제출 경로’만 사용해야 합니다.",
+          why:"메신저/문자로 보내는 순간 유출·도용 위험이 커지고, 사기가 아니어도 안전하지 않습니다.",
+          vector: V(+1,0,+2,+1,0,+2),
+          reply:"서류는 문자/카톡으로 못 보냅니다. 공식 앱/홈페이지 경로로만 제출할게요."
+        },
+        {text:"상담원이 처리해준다니 사진만 보내준다", score:-15,
+          feedback:"상담원 사칭은 매우 흔하고, 자료를 보내는 순간 통제권을 잃습니다.",
+          why:"신분증/대출 정보는 2차 피해(대출/계정 도용)로 이어질 수 있어요.",
+          vector: V(0,0,-2,-1,-1,-2),
+          reply:"네… 신분증 사진 보내드릴게요."
+        }
+      ]
+    },
+
+    {type:"line",from:"other",text:"그리고 접수 수수료가 있어요. 고객님 부담은 아니고요. ‘보증금’처럼 잠깐 맡겼다가 승인되면 바로 돌려드립니다."},
+    {type:"line",from:"other",text:"지금 자리(한도)가 얼마 안 남아서요. 오늘 안에만 입금 확인되면 우선 배정해드릴 수 있습니다."},
+
+    {type:"q",prompt:"‘수수료/보증금/예치금’처럼 돈을 먼저 보내라고 하면?",
+      choices:[
+        {text:"즉시 중단. 갈아타기 절차를 빌미로 한 선입금 요구는 고위험 → 공식 경로 확인/신고", score:+20,
+          feedback:"선입금 요구는 사기에서 매우 흔한 ‘결정타’ 단계입니다.",
+          why:"‘환급/보증’이라는 말로 안심시키지만, 입금 순간 회수가 어려워집니다.",
+          vector: V(+1,0,0,+2,+2,+1),
+          reply:"선입금 요구는 못 합니다. 여기서 중단하고 공식 채널로 확인하겠습니다."
+        },
+        {text:"돌려준다니 소액이면 보내도 된다", score:-20,
+          feedback:"소액으로 시작해 추가 입금/추가 인증으로 확장되는 경우가 많아요.",
+          why:"사기는 ‘이미 냈으니 끝까지’ 심리를 이용합니다.",
+          vector: V(-2,0,0,-2,-2,-1),
+          reply:"소액이면 괜찮겠죠… 보내고 진행할게요."
+        }
+      ]
+    },
+
+    {type:"line",from:"other",text:"마지막으로 본인확인 OTP가 갈 거예요. 그 번호를 제가 받아야 접수가 완료됩니다."},
+    {type:"line",from:"other",text:"시간 없어서요. 고객님이 읽어주시면 제가 대신 입력해서 바로 마무리해드릴게요."},
+
+    {type:"q",prompt:"‘OTP/인증번호’를 불러달라고 하면?",
+      choices:[
+        {text:"절대 공유하지 않는다. OTP는 ‘승인’이므로 공식 앱에서 ‘내가 직접’ 입력", score:+20,
+          feedback:"OTP 공유는 ‘승인/서명/이체’를 대신 해주는 것과 같습니다.",
+          why:"사기는 마지막에 OTP를 요구해 계정·대출·이체 권한을 가져가려 해요.",
+          vector: V(+1,0,+2,+1,+2,+1),
+          reply:"OTP는 누구에게도 못 줍니다. 공식 앱에서 제가 직접만 진행할게요."
+        },
+        {text:"접수만 하는 거니까 한 번쯤은 알려준다", score:-20,
+          feedback:"바로 그 ‘한 번’이 피해가 됩니다.",
+          why:"OTP는 목적이 무엇이든 ‘승인 그 자체’라 공유하면 끝입니다.",
+          vector: V(-1,0,-2,-1,-2,-1),
+          reply:"이번만 알려드릴게요…"
+        }
+      ]
+    },
+
+    {type:"line",from:"other",text:"고객님 지금 끊으시면 승인 취소될 수 있어요. 오늘 안에만 가능한 혜택이라서요."},
+
+    {type:"q",prompt:"상대가 ‘오늘 마감/지금 안 하면 취소’로 계속 압박하면?",
+      choices:[
+        {text:"압박 신호로 보고 통화 종료 → 공식 앱/대표번호로 재확인", score:+15,
+          feedback:"시간 압박은 판단을 급하게 만드는 전형적인 통제 수법입니다.",
+          why:"‘급함’이 커질수록 실수 확률이 올라가고, 사기는 그 순간을 노립니다.",
+          vector: V(+1,0,0,+2,0,+1),
+          reply:"압박이 심할수록 더 수상합니다. 끊고 공식 채널로 확인하겠습니다."
+        },
+        {text:"취소될까 봐 일단 시키는 대로 진행", score:-15,
+          feedback:"손해 회피 심리가 흔들릴 때가 가장 위험합니다.",
+          why:"사기는 ‘놓치면 손해’ 느낌으로 행동을 끌어냅니다.",
+          vector: V(-1,0,0,-2,-1,-1),
+          reply:"취소되면 곤란하니 일단 진행할게요…"
+        }
+      ]
+    },
+
+    {type:"q",prompt:"안전하게 마무리하는 방법은?",
+      choices:[
+        {text:"통화내용/번호 기록(캡처) → 차단 → 112/118 신고 + 은행 고객센터에 사실 확인", score:+10,
+          feedback:"기록/신고/공식 확인이 2차 피해를 막습니다.",
+          why:"같은 번호/패턴이 다른 사람에게도 반복될 수 있어요.",
+          vector: V(+1,0,0,0,+1,+2),
+          reply:"번호/내용 기록해두고 차단·신고할게요. 은행에도 직접 확인하겠습니다."
+        },
+        {text:"그냥 끊고 잊는다", score:-5,
+          feedback:"최소한 차단/공식 확인까지 하면 더 안전합니다.",
+          why:"반복 범죄라 신고가 도움이 됩니다.",
+          vector: V(0,0,0,0,0,-1),
+          reply:"그냥 끊고 잊을게요."
+        }
+      ]
+    }
+
+  ]
+
+};
+</script>
+
+<script>
+window.SCENARIOS.exp_m_family = {
+
+  type:"messenger",
+
+  ui:"kakao",
+
+  speedMs: 1200,
+
+  title:"가족사칭(카톡)",
+
+  notify:{ title:"카톡", body:"‘서윤’에게서 메시지가 왔어요." },
+
+  header:{ title:"서윤", sub:"최근에 추가된 친구" },
+
+  keyPoints:["새 번호+통화 회피=의심", "원래 저장번호로 콜백 확인", "링크/OTP 요구는 즉시 중단"],
+
+  oneLiner:"새 번호로 급하면, ‘끊고 콜백’이 먼저입니다.",
+
+  steps:[
+
+    {type:"msg",from:"other",text:"아빠… 나 서윤이야. 폰 액정 깨져서 임시폰 쓰는데, 카톡이 이 번호로만 돼."},
+
+    {type:"msg",from:"other",text:"지금 급한데… 나 결제 취소해야 하는데 인증이 자꾸 떠. 혼자 못 하겠어."},
+
+    {type:"msg",from:"other",text:"배터리도 없고 소리도 안 들려서 통화는 어렵고… 카톡으로만 부탁해. 진짜 급해."},
+
+
+
+    {type:"q",prompt:"이 상황에서 ‘가장 먼저’ 해야 할 행동은?",
+
+      choices:[
+
+        {text:"원래 저장된 번호로 직접 전화(콜백)해서 본인 확인", score:+20,
+
+          feedback:"가족사칭은 ‘원래 번호 콜백’이 가장 강력합니다.",
+
+          why:"새 번호 + 통화 회피 + 급함은 전형적인 사칭 조합이에요.",
+
+          vector: V(+2,0,0,+2,0,+2),
+
+          reply:"알겠어. 지금 번호로 말고, 내가 원래 저장된 서윤이 번호로 직접 전화해서 확인해볼게."
+
+        },
+
+        {text:"카톡으로만 확인 질문 몇 개 하고 바로 도와준다", score:+5,
+
+          feedback:"부분적으로 좋지만, 사기꾼이 기본 정보는 알고 있을 수 있어요.",
+
+          why:"질문은 보조 수단이고 콜백이 우선입니다.",
+
+          vector: V(+1,0,0,0,0,+1),
+
+          reply:"몇 가지는 확인할게. 그래도 원래 번호로 확인부터 할게."
+
+        },
+
+        {text:"급하니 일단 도와주고 나중에 확인", score:-20,
+
+          feedback:"‘먼저 처리’가 피해로 이어지기 쉬워요.",
+
+          why:"사기는 ‘지금 당장’으로 판단을 빼앗습니다.",
+
+          vector: V(-2,0,0,-2,-2,-1),
+
+          reply:"알았어… 일단 뭘 하면 돼?"
+
+        }
+
+      ]
+
+    },
+
+
+
+    {type:"msg",from:"other",text:"아빠 지금 전화하면 안 돼… 진짜 시간 없어. 일단 이것만 해주면 끝나."},
+
+    {type:"msg",from:"other",text:"카드사에서 ‘본인확인’ 링크가 왔는데, 내가 화면이 깨져서 입력이 힘들어."},
+
+    {type:"msg",from:"other",text:"여기 링크야: example.verify-pay  지금 바로 눌러줘. 누르면 인증번호 올 거야."},
+
+    {type:"msg",from:"other",text:"그 인증번호만 나한테 알려주면 결제 취소돼. 제발 급해…"},
+
+
+
+    {type:"q",prompt:"링크/인증 유도가 왔을 때 가장 안전한 선택은?",
+
+      choices:[
+
+        {text:"링크는 누르지 않고, 카드사 앱/공식 홈페이지에서 직접 확인", score:+20,
+
+          feedback:"링크 대신 ‘공식 앱/직접 접속’이 원칙입니다.",
+
+          why:"유사 도메인·가짜 결제창으로 정보/승인을 빼가요.",
+
+          vector: V(+2,+2,0,+1,0,+1),
+
+          reply:"링크는 안 눌러. 카드사 앱에서 내가 직접 결제내역/알림부터 확인할게."
+
+        },
+
+        {text:"주소가 그럴듯하면 링크로 진행", score:-20,
+
+          feedback:"‘그럴듯함’이 바로 함정이에요.",
+
+          why:"가짜 페이지는 진짜처럼 꾸밉니다.",
+
+          vector: V(0,-2,0,-1,-1,-1),
+
+          reply:"주소가 그럴듯하네… 들어가볼게."
+
+        },
+
+        {text:"일단 눌러보고 이상하면 뒤로가기", score:-10,
+
+          feedback:"한 번 열면 설치/권한/인증 유도로 이어질 수 있어요.",
+
+          why:"‘일단 눌러보기’ 습관이 피해로 연결됩니다.",
+
+          vector: V(0,-1,0,-1,0,0),
+
+          reply:"잠깐만 눌러보고 이상하면 바로 닫을게."
+
+        }
+
+      ]
+
+    },
+
+
+
+    {type:"msg",from:"other",text:"아빠 제발… 카드사에서 ‘인증번호’ 떴지? 그거만 빨리 알려줘. 지금 제한 걸릴 것 같아."},
+
+
+
+    {type:"q",prompt:"‘인증번호(OTP)’를 알려달라고 하면?",
+
+      choices:[
+
+        {text:"어떤 경우에도 공유하지 않는다(가족도 예외 없음)", score:+20,
+
+          feedback:"OTP는 ‘승인 그 자체’라 공유하면 끝입니다.",
+
+          why:"OTP 공유=결제/로그인 승인과 같습니다.",
+
+          vector: V(+1,0,+2,+1,+2,0),
+
+          reply:"인증번호는 누구한테도 못 줘. 그건 내가 승인한 거랑 같아."
+
+        },
+
+        {text:"가족이면 한 번 정도는 괜찮다", score:-20,
+
+          feedback:"가족사칭은 바로 그 심리를 노립니다.",
+
+          why:"‘가족’이라는 방패가 함정이 됩니다.",
+
+          vector: V(-1,0,-2,-1,-2,0),
+
+          reply:"이번만 알려줄게…"
+
+        },
+
+        {text:"서비스가 뭔지 물어보고 판단한다", score:-5,
+
+          feedback:"부분적으로는 좋지만 원칙은 ‘공유 금지’입니다.",
+
+          why:"상대가 서비스명을 그럴듯하게 말해도 위장 가능해요.",
+
+          vector: V(0,0,-1,0,0,+1),
+
+          reply:"어떤 인증번호야? 근데 원칙적으로는 못 줘."
+
+        }
+
+      ]
+
+    },
+
+
+
+    {type:"msg",from:"other",text:"아빠 왜 이렇게 오래 걸려… 진짜 큰일 난다니까. 그냥 지금 내가 말한 대로만 해줘."},
+
+
+
+    {type:"q",prompt:"상대가 ‘지금 당장’ ‘빨리’ 압박을 반복하면?",
+
+      choices:[
+
+        {text:"멈추고 검증부터(콜백/대면/교차확인)", score:+15,
+
+          feedback:"압박은 판단을 흐리게 만드는 전형 패턴입니다.",
+
+          why:"속도=취약, 멈춤=방어.",
+
+          vector: V(+1,0,0,+2,0,+1),
+
+          reply:"급해도 난 멈출게. 원래 번호로 확인하고 나서 도와줄게."
+
+        },
+
+        {text:"일단 처리하고 캡처만 해둔다", score:-15,
+
+          feedback:"캡처는 사후대응이고 ‘먼저 처리’가 제일 위험합니다.",
+
+          why:"사전 차단이 우선이에요.",
+
+          vector: V(-1,0,0,-2,-1,0),
+
+          reply:"알았어. 일단 해줄게…"
+
+        }
+
+      ]
+
+    },
+
+
+
+    {type:"msg",from:"other",text:"그래… 그럼 확인 질문 하나만. 나 지금 너무 급해서 그래."},
+
+
+
+    {type:"q",prompt:"‘새 번호’라고 하면 추가로 확인할 좋은 방법은?",
+
+      choices:[
+
+        {text:"가족만 아는 질문을 ‘내가 먼저’ 하고 + 저장번호 콜백까지", score:+15,
+
+          feedback:"질문은 보조, 콜백이 핵심입니다.",
+
+          why:"사기꾼이 일부 정보는 이미 알고 있을 수도 있어요.",
+
+          vector: V(+1,0,0,0,0,+2),
+
+          reply:"우리만 아는 걸 내가 먼저 물어볼게. 그리고 원래 번호로 내가 콜백할게."
+
+        },
+
+        {text:"상대가 먼저 말해주는 개인정보가 맞으면 믿는다", score:-10,
+
+          feedback:"개인정보는 유출될 수 있어요.",
+
+          why:"‘이미 아는 정보’로 신뢰를 만들어냅니다.",
+
+          vector: V(0,0,-1,0,0,-2),
+
+          reply:"아는 정보가 맞네… 진짜인가 보다."
+
+        }
+
+      ]
+
+    }
+
+  ]
+
+};
+
+
+
+window.SCENARIOS.exp_m_smishing = {
+
+  type:"messenger",
+
+  ui:"sms",
+
+  speedMs: 1250,
+
+  title:"스미싱(문자)",
+
+  notify:{ title:"문자메시지", body:"배송 알림 문자가 도착했어요." },
+
+  header:{ title:"문자메시지", sub:"배송 안내" },
+
+  keyPoints:["문자 링크=일단 멈춤", "공식 앱/웹에서 직접 조회", "설치/권한 요청=즉시 중단"],
+
+  oneLiner:"문자 링크는 누르지 말고, 택배사 앱에서 직접 확인하세요.",
+
+  steps:[
+
+    {type:"msg",from:"other",text:"[배송안내] 주소지 불명확으로 배송이 보류되었습니다."},
+
+    {type:"msg",from:"other",text:"18:00까지 확인 없으면 자동 반송됩니다. 확인 링크: http://bit.ly/xxxxx"},
+
+    {type:"msg",from:"other",text:"※ 빠른 확인을 위해 본인인증이 필요할 수 있습니다."},
+
+
+
+    {type:"q",prompt:"이 문자를 받았을 때 가장 안전한 행동은?",
+
+      choices:[
+
+        {text:"링크를 누르지 않고 택배사 앱/공식 사이트에서 송장번호로 직접 조회", score:+20,
+
+          feedback:"링크 대신 공식 경로로 확인하세요.",
+
+          why:"문자 링크는 클릭을 유도하는 장치입니다.",
+
+          vector: V(+2,+2,0,+1,0,+1),
+
+          reply:"링크는 안 눌러. 택배사 앱에서 송장번호로 직접 조회할게."
+
+        },
+
+        {text:"링크를 눌러 주소만 확인하고 나온다", score:-15,
+
+          feedback:"‘주소 확인’처럼 가볍게 보이게 만드는 게 함정입니다.",
+
+          why:"열리는 순간 설치/권한 유도 화면이 뜰 수 있어요.",
+
+          vector: V(0,-2,0,-1,0,0),
+
+          reply:"주소만 확인하고 바로 닫을게."
+
+        },
+
+        {text:"문자에 적힌 번호로 전화한다", score:+5,
+
+          feedback:"부분적으로 낫지만, 문자 속 번호도 위조될 수 있어요.",
+
+          why:"공식 앱/직접 검색한 대표번호가 더 안전합니다.",
+
+          vector: V(+1,0,0,0,0,0),
+
+          reply:"일단 택배사 대표번호를 직접 검색해서 전화해볼게."
+
+        }
+
+      ]
+
+    },
+
+
+
+    {type:"msg",from:"other",text:"[안내] 확인 페이지 접속이 지연되고 있습니다. 원활한 조회를 위해 ‘배송조회 앱’ 설치가 필요합니다."},
+
+    {type:"msg",from:"other",text:"설치 후 ‘문자 접근/알림/기기관리자’ 권한을 허용하면 자동으로 주소 확인이 완료됩니다."},
+
+    {type:"msg",from:"other",text:"지금 설치하지 않으면 반송될 수 있습니다."},
+
+
+
+    {type:"q",prompt:"문자에서 ‘앱 설치’ + ‘권한 허용’을 요구하면?",
+
+      choices:[
+
+        {text:"고위험. 즉시 중단/삭제/차단/신고(118 등) + 기기 점검", score:+20,
+
+          feedback:"설치/권한 요청은 스미싱의 핵심 단계입니다.",
+
+          why:"악성앱은 문자 가로채기·원격제어로 이어질 수 있어요.",
+
+          vector: V(+1,+2,+2,+1,0,+2),
+
+          reply:"이건 위험해. 문자 삭제하고 차단한 뒤 118에 신고할게."
+
+        },
+
+        {text:"일단 설치하고, 이상하면 지운다", score:-20,
+
+          feedback:"설치 순간 이미 권한 탈취가 시작될 수 있어요.",
+
+          why:"‘나중에 삭제’로 해결 안 되는 경우가 많습니다.",
+
+          vector: V(0,-2,-2,-1,-2,-1),
+
+          reply:"일단 설치해보고… 이상하면 지울게."
+
+        }
+
+      ]
+
+    },
+
+
+
+    {type:"msg",from:"other",text:"[긴급] 확인 마감까지 30분 남았습니다. 지금 처리하지 않으면 반송됩니다."},
+
+
+
+    {type:"q",prompt:"‘오늘 안에/지금’ 같은 시간 제한이 나오면?",
+
+      choices:[
+
+        {text:"압박 신호로 보고 멈춘 뒤 공식 경로로만 확인", score:+15,
+
+          feedback:"시간 제한은 판단을 급하게 만들려는 장치예요.",
+
+          why:"급함은 사기의 연료입니다.",
+
+          vector: V(+1,0,0,+2,0,+1),
+
+          reply:"시간 압박이 더 수상해. 멈추고 공식 앱에서 확인할게."
+
+        },
+
+        {text:"반송이 싫으니 일단 눌러서 빨리 처리", score:-15,
+
+          feedback:"‘손해 회피’ 심리를 노립니다.",
+
+          why:"급하게 누르게 만드는 게 목적이에요.",
+
+          vector: V(-1,-1,0,-2,0,-1),
+
+          reply:"반송되면 곤란하니까 빨리 처리할게…"
+
+        }
+
+      ]
+
+    },
+
+
+
+    {type:"msg",from:"other",text:"[확인] 단축 URL로 제공됩니다. 링크가 열리지 않으면 다른 브라우저로 다시 시도해 주세요."},
+
+
+
+    {type:"q",prompt:"링크가 ‘단축 URL’/낯선 도메인이면?",
+
+      choices:[
+
+        {text:"절대 클릭하지 않고 공식 앱/웹에서 직접 확인", score:+15,
+
+          feedback:"단축 URL은 목적지를 숨깁니다.",
+
+          why:"피싱/악성앱 유도로 연결되기 쉬워요.",
+
+          vector: V(+1,+2,0,+1,0,+1),
+
+          reply:"단축 링크는 더 위험해. 공식 경로로만 확인할게."
+
+        },
+
+        {text:"친숙해 보이면 눌러도 된다", score:-15,
+
+          feedback:"‘친숙함’은 연출할 수 있어요.",
+
+          why:"가짜 페이지는 진짜처럼 보이게 만듭니다.",
+
+          vector: V(0,-2,0,0,0,-1),
+
+          reply:"친숙해 보이니까 괜찮겠지…"
+
+        }
+
+      ]
+
+    },
+
+
+
+    {type:"msg",from:"other",text:"[추가안내] 원활한 처리를 위해 오류 화면/문자 내용을 캡처해 고객센터에 제출하세요."},
+
+
+
+    {type:"q",prompt:"피해 예방/대응을 위해 남겨두면 좋은 기록은?",
+
+      choices:[
+
+        {text:"문자 캡처 + 발신번호 + 링크/권한요청 화면 기록", score:+10,
+
+          feedback:"신고/차단과 기기 점검에 도움이 됩니다.",
+
+          why:"증거가 있으면 대응 속도가 빨라져요.",
+
+          vector: V(+1,0,0,0,0,+2),
+
+          reply:"캡처해두고 링크/번호도 기록해둘게."
+
+        },
+
+        {text:"그냥 지우면 된다", score:-5,
+
+          feedback:"증거가 있으면 다음 피해를 막는 데 도움이 돼요.",
+
+          why:"차단/신고가 더 빨라집니다.",
+
+          vector: V(0,0,0,0,0,-1),
+
+          reply:"귀찮으니까 그냥 지울게."
+
+        }
+
+      ]
+
+    }
+
+  ]
+
+};
+
+
+
+window.SCENARIOS.exp_m_agency = {
+
+  type:"messenger",
+
+  ui:"kakao",
+
+  speedMs: 1200,
+
+  title:"기관사칭(카톡)",
+
+  notify:{ title:"알림", body:"보안 안내 메시지가 도착했어요." },
+
+  header:{ title:"고객센터 안내", sub:"보안 알림" },
+
+  keyPoints:["불안(계정잠김)으로 급하게 만들기", "공식 앱/웹 메뉴로 직접 확인", "링크/인증 입력 유도는 중단"],
+
+  oneLiner:"‘계정 잠김’으로 겁주면, 멈추고 공식 메뉴로 직접 확인하세요.",
+
+  steps:[
+
+    {type:"msg",from:"other",text:"[보안센터 안내] 회원님 계정에서 ‘해외 로그인 시도’가 감지되었습니다."},
+
+    {type:"msg",from:"other",text:"현재 결제/이체 기능이 일시 제한될 수 있습니다. 본인 확인 후 즉시 해제 가능합니다."},
+
+    {type:"msg",from:"other",text:"고객센터 연결 도와드릴까요? 여기서 바로 처리해드리면 1분이면 끝나요."},
+
+    {type:"q",prompt:"이런 메시지를 받았을 때 가장 안전한 확인 경로는?",
+      choices:[
+        {text:"앱/웹에서 ‘공식 고객센터/보안 메뉴’로 직접 들어가 확인", score:+20,
+          feedback:"‘공식 메뉴 직접 진입’이 최우선입니다.",
+          why:"대화 속 링크/상담원은 사칭 가능해요.",
+          vector: V(+2,+1,0,+1,0,+1),
+          reply:"여기서 처리 말고, 제가 앱에서 고객센터/보안 메뉴로 직접 확인할게요."
+        },
+        {text:"대화에 포함된 링크로 들어가 확인", score:-20,
+          feedback:"불안으로 링크 클릭을 유도하는 전형 패턴입니다.",
+          why:"공식 경로 우회는 위험해요.",
+          vector: V(-1,-2,0,-1,0,-1),
+          reply:"일단 링크로 들어가볼게요."
+        }
+      ]
+    },
+
+    {type:"msg",from:"other",text:"확인 시간이 없어서요. 지금 바로 해제해야 ‘영구 제한’이 안 걸립니다."},
+    {type:"msg",from:"other",text:"아래에서 본인인증(인증번호 입력)만 하면 바로 풀립니다. example.secure-center"},
+    {type:"msg",from:"other",text:"인증 늦으면 결제/이체가 막힐 수 있어요."},
+
+    {type:"q",prompt:"대화창에서 ‘인증번호 입력’을 요구하면?",
+      choices:[
+        {text:"중단. 인증은 공식 앱/웹에서만 진행", score:+20,
+          feedback:"인증은 ‘공식 앱/웹에서만’!",
+          why:"인증 입력 유도는 계정 탈취로 직결됩니다.",
+          vector: V(+1,+2,+2,+1,0,+1),
+          reply:"대화창에서 인증은 못 합니다. 공식 앱에서만 처리할게요."
+        },
+        {text:"급하니 입력하고 끝낸다", score:-20,
+          feedback:"‘급함’은 판단을 빼앗는 장치예요.",
+          why:"인증 입력=권한 위임이 될 수 있어요.",
+          vector: V(-1,-2,-2,-2,0,-1),
+          reply:"급하니까 빨리 입력할게요…"
+        }
+      ]
+    },
+
+    {type:"msg",from:"other",text:"그럼 전화로 빠르게 도와드릴게요. 지금 바로 이 번호로 연락 주세요: 1588-****"},
+    {type:"msg",from:"other",text:"통화 연결되면 제가 ‘원격으로’ 확인하고 제한을 풀어드리겠습니다."},
+
+    {type:"q",prompt:"상대가 ‘상담원/전화 연결’을 유도하면?",
+      choices:[
+        {text:"내가 직접 검색한 공식 대표번호/앱 고객센터로 콜백 확인", score:+15,
+          feedback:"내가 거는 콜백이 훨씬 안전합니다.",
+          why:"상대가 주는 번호는 사기일 수 있어요.",
+          vector: V(+2,0,0,0,0,+1),
+          reply:"번호는 제가 직접 검색해서 공식 대표번호로 확인하겠습니다."
+        },
+        {text:"상담원이니까 그대로 따른다", score:-10,
+          feedback:"‘상담원’은 쉽게 사칭됩니다.",
+          why:"권위를 믿게 만들어 조종합니다.",
+          vector: V(-1,0,0,-1,0,-1),
+          reply:"상담원이면 믿어도 되겠지…"
+        }
+      ]
+    },
+
+    {type:"msg",from:"other",text:"지금 안 하면 ‘영구 잠금’ 처리될 수 있어요. 고객님 책임으로 남습니다."},
+
+    {type:"q",prompt:"‘영구 잠금/즉시 제한’ 같은 강한 표현이 나오면?",
+      choices:[
+        {text:"압박 신호로 보고 멈춘 뒤 공식 경로 확인", score:+15,
+          feedback:"과한 위협은 클릭/인증 유도를 위한 연출입니다.",
+          why:"불안을 키워 빨리 움직이게 만들어요.",
+          vector: V(+1,0,0,+2,0,+1),
+          reply:"위협적으로 말할수록 더 멈추고 공식 경로로 확인하겠습니다."
+        },
+        {text:"무서우니 시키는 대로 빨리 진행", score:-15,
+          feedback:"공포로 통제합니다.",
+          why:"빠른 행동이 피해로 이어져요.",
+          vector: V(-1,-1,-1,-2,0,-1),
+          reply:"잠기면 큰일이니 빨리 할게요…"
+        }
+      ]
+    },
+
+    {type:"msg",from:"other",text:"마지막으로 안내드립니다. 링크 클릭/인증만 해주시면 정말 끝입니다."},
+
+    {type:"q",prompt:"마지막으로 가장 안전한 습관은?",
+      choices:[
+        {text:"링크·인증 요구가 나오면 ‘멈춤→공식경로’로만 처리", score:+15,
+          feedback:"대부분 유형에 통하는 핵심 원칙이에요.",
+          why:"검증이 곧 방어입니다.",
+          vector: V(+2,+1,+1,+1,0,+1),
+          reply:"링크/인증 요구가 나오면 멈추고 공식 앱/웹에서만 확인할게요."
+        },
+        {text:"급할 때는 예외로 빠르게 처리", score:-10,
+          feedback:"‘예외’가 피해가 되기 쉽습니다.",
+          why:"사기는 예외를 노려요.",
+          vector: V(-1,0,0,-2,0,-1),
+          reply:"급하면 예외로 처리할 수도 있죠…"
+        }
+      ]
+    }
+
+  ]
+
+};
+</script>
+
+<script>
+window.SCENARIOS.exp_m_cambodia_job = {
+
+  type:"messenger",
+
+  ui:"kakao",
+
+  speedMs: 1200,
+
+  title:"캄보디아 취업사기(카톡)",
+
+  notify:{ title:"카톡", body:"해외취업 제안 메시지가 왔어요." },
+
+  header:{ title:"해외채용 담당", sub:"고수익 채용 안내" },
+
+  keyPoints:["해외 고수익+즉시결정 유도=의심", "여권/신분증 선요구=위험", "보증금/선입금 요구=즉시 중단"],
+
+  oneLiner:"해외 고수익 제안은 ‘교차검증’이 먼저, 서류/돈 요구는 즉시 중단입니다.",
+
+  steps:[
+
+    {type:"msg",from:"other",text:"안녕하세요. 해외(캄보디아) 현지 채용 담당입니다. 고객응대/CS 포지션이고 월 700~900(성과 포함) 가능합니다."},
+
+    {type:"msg",from:"other",text:"항공/숙소는 회사 지원이고요. 이번 기수 자리가 거의 마감이라 오늘 안에만 의사만 주시면 됩니다."},
+
+    {type:"msg",from:"other",text:"간단히 카톡으로 절차 진행해드릴게요. (전화는 현지 업무로 어려울 수 있어요)"},
+
+
+
+    {type:"q",prompt:"첫 제안에서 가장 먼저 의심해야 할 신호는?",
+
+      choices:[
+
+        {text:"현실성 큰 고수익 + ‘오늘 마감’으로 급하게 결정 유도", score:+15,
+
+          feedback:"‘고수익+급함’은 대표 미끼 조합입니다.",
+
+          why:"빠른 결정을 유도해 검증을 못 하게 해요.",
+
+          vector: V(0,0,0,+2,0,+1),
+
+          reply:"조건이 너무 좋고 오늘 마감이라니… 공식 공고/회사 정보부터 교차확인할게요."
+
+        },
+
+        {text:"월급이 높으면 좋은 기회일 수 있다", score:-10,
+
+          feedback:"해외 고수익은 대표 미끼입니다.",
+
+          why:"조건이 비현실적이면 의심이 우선이에요.",
+
+          vector: V(0,0,0,0,0,-2),
+
+          reply:"월급이 높으니 좋은 기회 같아요…"
+
+        }
+
+      ]
+
+    },
+
+
+
+    {type:"msg",from:"other",text:"진행하려면 우선 여권 사진 + 신분증 앞뒤만 보내주세요. 비자/항공 예약 ‘가예약’에 필요합니다."},
+
+    {type:"msg",from:"other",text:"그리고 이건 경쟁 채용이라… 주변에 말하면 자리 뺏길 수 있어요. 가족/지인에겐 합격 후에 공유하시는 게 좋아요."},
+
+
+
+    {type:"q",prompt:"여권/신분증 사진을 ‘먼저’ 요구하면?",
+
+      choices:[
+
+        {text:"거절. 정식 채용공고/기업 공식 채널로만 제출", score:+20,
+
+          feedback:"여권/신분증은 도용 피해가 큽니다.",
+
+          why:"개인정보 선제 요구는 고위험 신호예요.",
+
+          vector: V(+1,0,+2,+1,0,+1),
+
+          reply:"여권/신분증은 카톡으로 못 보내요. 정식 공고/공식 절차로만 제출하겠습니다."
+
+        },
+
+        {text:"회사명/로고가 있으니 보내도 된다", score:-20,
+
+          feedback:"회사명·로고는 쉽게 도용됩니다.",
+
+          why:"도용은 장기 피해로 이어질 수 있어요.",
+
+          vector: V(0,0,-2,0,0,-2),
+
+          reply:"회사라면 괜찮겠죠… 보내드릴게요."
+
+        }
+
+      ]
+
+    },
+
+
+
+    {type:"msg",from:"other",text:"알겠습니다. 그럼 최소한 ‘가예약 보증금’만 먼저 걸어주시면 자리는 확보돼요."},
+
+    {type:"msg",from:"other",text:"비자/항공권 예약 보증금 30만 원이고, 확정되면 전액 환급입니다. 오늘만 가능해요."},
+
+
+
+    {type:"q",prompt:"예약금/보증금 선입금을 요구하면?",
+
+      choices:[
+
+        {text:"중단. 선입금 요구는 고위험 → 차단/신고 고려", score:+20,
+
+          feedback:"취업사기에서 ‘선입금’은 매우 흔합니다.",
+
+          why:"소액으로 시작해 추가 요구가 커질 수 있어요.",
+
+          vector: V(+1,0,0,+1,+2,+1),
+
+          reply:"선입금 요구는 못 합니다. 여기서 진행을 중단하겠습니다."
+
+        },
+
+        {text:"소액이면 괜찮으니 보내고 진행", score:-20,
+
+          feedback:"소액으로 시작해 반복 요구로 커집니다.",
+
+          why:"‘소액’이 함정입니다.",
+
+          vector: V(-1,0,0,-1,-2,-1),
+
+          reply:"소액이니까 그냥 보내고 진행할게요."
+
+        }
+
+      ]
+
+    },
+
+
+
+    {type:"msg",from:"other",text:"혹시 의심되시면 제가 자료 보내드릴게요. 회사 소개서/계약서 양식/후기 링크 등."},
+
+
+
+    {type:"q",prompt:"해외 취업 제안이 진짜인지 확인하려면?",
+
+      choices:[
+
+        {text:"기업 공식 사이트/정식 채용공고/공공기관 경고를 교차 확인", score:+15,
+
+          feedback:"해외 취업은 교차검증이 필수입니다.",
+
+          why:"상대가 준 자료만 보면 ‘연출’에 속기 쉬워요.",
+
+          vector: V(+2,+1,0,0,0,+1),
+
+          reply:"상대 자료 말고, 회사 공식 사이트/정식 공고/주의 공지로 교차확인할게요."
+
+        },
+
+        {text:"상대가 보내준 링크/자료만 확인한다", score:-15,
+
+          feedback:"링크 자체가 가짜일 수 있어요.",
+
+          why:"검증은 ‘내가 직접’이 핵심입니다.",
+
+          vector: V(0,-2,0,0,0,-1),
+
+          reply:"보내주신 링크로 확인하면 되겠죠?"
+
+        }
+
+      ]
+
+    },
+
+
+
+    {type:"msg",from:"other",text:"마지막으로 부탁드려요. 아직 확정 전이라 주변에 말하지 마세요. 말 새면 자리 없어질 수 있어요."},
+
+
+
+    {type:"q",prompt:"‘주변에 말하지 말라(비밀)’고 하면?",
+
+      choices:[
+
+        {text:"고립 유도 신호. 주변과 상의/공유한다", score:+15,
+
+          feedback:"비밀 요구는 피해를 키우는 장치입니다.",
+
+          why:"공유가 방어입니다.",
+
+          vector: V(+1,0,0,+2,0,+2),
+
+          reply:"이런 중요한 결정은 주변과 상의할게요. 혼자 조용히 진행하진 않겠습니다."
+
+        },
+
+        {text:"기회니까 조용히 진행한다", score:-15,
+
+          feedback:"고립되면 판단이 흐려집니다.",
+
+          why:"사기는 고립을 좋아합니다.",
+
+          vector: V(-1,0,0,-2,0,-2),
+
+          reply:"기회 놓치기 싫으니 조용히 진행할게요."
+
+        }
+
+      ]
+
+    }
+
+  ]
+
+};
+
+
+
+/* 노쇼사기(전화) */
+
+window.SCENARIOS.exp_c_noshow = {
+
+  type:"call",
+
+  speedMs: 1250,
+
+  title:"노쇼사기(전화)",
+
+  incoming:{ name:"단체예약 담당", number:"010-12XX-5X78" },
+
+  voiceUrl: "https://koreapolkim.github.io/vv/no.mp3", // ✅ 추가
+
+  keyPoints:["단체주문으로 신뢰 확보", "공문/직함은 위조 가능", "대리구매·선결제 요구=즉시 중단"],
+
+  oneLiner:"단체주문 뒤 ‘대리구매/선결제’를 요구하면 노쇼사기 가능성이 큽니다. 공식 번호로 확인하세요.",
+
+  steps:[
+
+    {type:"line",from:"other",text:"사장님 안녕하세요. ○○기관 행사 담당입니다. 오늘 저녁 7시에 30명 단체 예약 가능할까요?"},
+
+    {type:"line",from:"other",text:"메뉴는 사장님 추천으로 하고, 예산은 넉넉해요. 세금계산서/영수증 처리해야 해서 공문 보내드릴까요?"},
+
+    {type:"q",prompt:"단체 예약/주문 전화가 왔을 때 가장 안전한 첫 행동은?",
+      choices:[
+        {text:"주문 정보(일시/인원/메뉴/담당자 이름) 기록 + 기관 ‘공식 대표번호’를 내가 직접 찾아 사실 확인", score:+20,
+          feedback:"‘내가 직접 공식 번호로 확인’이 핵심입니다.",
+          why:"노쇼사기는 공문/직함으로 신뢰를 만든 뒤 대리구매로 넘어갑니다.",
+          vector: V(+2,0,0,+1,0,+2),
+          reply:"주문 내용은 기록해둘게요. 기관 대표번호로 제가 직접 확인 후 진행하겠습니다."
+        },
+        {text:"공문 준다니 믿고 바로 예약 확정", score:-15,
+          feedback:"공문/직함은 쉽게 위조됩니다.",
+          why:"검증 없이 확정하면 다음 요구(대리구매)에 끌려가요.",
+          vector: V(0,0,0,-1,-1,-2),
+          reply:"네 믿고 예약 잡아둘게요."
+        }
+      ]
+    },
+
+    {type:"line",from:"other",text:"좋습니다. 공문이랑 제 명함/신분증 사진을 문자로 보내드릴게요."},
+    {type:"line",from:"other",text:"아, 그리고 행사 물품이 급하게 하나 필요한데요. 저희가 결제 절차가 느려서… 사장님이 ‘대리구매’만 해주실 수 있을까요?"},
+    {type:"line",from:"other",text:"협력업체 계좌/연락처 드릴 테니 거기에 먼저 결제만 해주시면, 저희가 오늘 결제할 때 음식값이랑 합쳐서 한 번에 정산해드릴게요."},
+
+    {type:"q",prompt:"단체주문 중 ‘취급하지 않는 물품을 대신 사서 보내달라(대리구매)’고 하면?",
+      choices:[
+        {text:"즉시 중단. 대리구매 거절 + 공식 확인 전엔 예약/정산도 확정하지 않는다", score:+20,
+          feedback:"‘대리구매’는 노쇼사기의 핵심 수법입니다.",
+          why:"선결제 순간 피해가 발생하고 이후 잠적하는 경우가 많아요.",
+          vector: V(+2,0,0,+1,+2,+2),
+          reply:"대리구매는 불가합니다. 공식 확인 전엔 어떤 결제도 못 합니다."
+        },
+        {text:"큰 주문이니 서비스로 대리구매 해준다", score:-20,
+          feedback:"바로 그 ‘큰 주문’이 미끼일 수 있어요.",
+          why:"대리구매 선결제 순간 피해가 발생합니다.",
+          vector: V(-1,0,0,-1,-2,-2),
+          reply:"큰 주문이니까… 제가 대신 결제해드릴게요."
+        }
+      ]
+    },
+
+    {type:"line",from:"other",text:"사장님, 행사 시간이 얼마 안 남아서요. 지금 안 하면 행사 취소됩니다."},
+    {type:"line",from:"other",text:"정산은 제가 책임질게요. 지금만 좀 도와주세요."},
+
+    {type:"q",prompt:"‘지금 안 하면 취소/문제’라며 시간 압박을 하면?",
+      choices:[
+        {text:"압박 신호로 멈춤 → 기관 공식 대표번호로 재확인", score:+15,
+          feedback:"시간 압박은 생각할 시간을 빼앗는 통제 수법입니다.",
+          why:"급하게 움직이게 만들어 ‘선결제’로 끌고 갑니다.",
+          vector: V(+1,0,0,+2,0,+1),
+          reply:"압박이 심해서 더 수상합니다. 전 멈추고 공식 번호로 확인하겠습니다."
+        },
+        {text:"취소될까 봐 빨리 처리한다", score:-15,
+          feedback:"손해 회피 심리를 노립니다.",
+          why:"급하게 결제/이체하게 만드는 장치입니다.",
+          vector: V(-1,0,0,-2,-2,-1),
+          reply:"취소되면 곤란하니 지금 처리할게요…"
+        }
+      ]
+    },
+
+    {type:"line",from:"other",text:"공문/신분증까지 보냈는데도 의심하세요? 저희는 기관입니다. 시간 없어요."},
+
+    {type:"q",prompt:"공문/신분증 사진을 보내 ‘진짜 같다’고 느껴질 때 올바른 태도는?",
+      choices:[
+        {text:"사진은 위조 가능. 공식 확인 전엔 돈/대리구매/계좌이체 금지", score:+15,
+          feedback:"사진은 ‘증거’가 아니라 ‘연출’일 수 있어요.",
+          why:"검증은 반드시 공식 채널로 해야 합니다.",
+          vector: V(+2,0,0,+1,0,+2),
+          reply:"문서는 참고만 하고, 공식 대표번호 확인 전엔 어떤 결제도 못 합니다."
+        },
+        {text:"사진이 있으니 믿고 진행한다", score:-10,
+          feedback:"위조된 문서로 신뢰를 만드는 게 핵심입니다.",
+          why:"‘증빙’처럼 보이게 만드는 수법이에요.",
+          vector: V(0,0,0,0,-1,-2),
+          reply:"문서가 있으니 믿어도 되겠네요."
+        }
+      ]
+    },
+
+    {type:"line",from:"other",text:"그럼 예약은 취소할게요. 사장님이 협조를 안 하시네요."},
+
+    {type:"q",prompt:"안전하게 마무리하는 방법은?",
+      choices:[
+        {text:"통화 종료 → 번호/대화 기록 저장 → 차단/신고(112 등) + 주변 업주 공유", score:+10,
+          feedback:"기록과 공유가 2차 피해를 막습니다.",
+          why:"동네 상권에서 연쇄 피해가 나기도 해요.",
+          vector: V(+1,0,0,0,0,+2),
+          reply:"기록 남기고 차단/신고하겠습니다. 주변에도 공유할게요."
+        },
+        {text:"그냥 잊는다", score:-5,
+          feedback:"신고/공유가 다음 피해를 줄입니다.",
+          why:"반복 범죄가 많아요.",
+          vector: V(0,0,0,0,0,-1),
+          reply:"그냥 무시할게요."
+        }
+      ]
+    }
+
+  ]
+
+};
+</script>
+
+<script>
+window.SCENARIOS.exp_c_investigation = {
+
+  type:"call",
+
+  speedMs: 1250,
+
+  title:"수사기관 사칭(전화)",
+
+  incoming:{ name:"서울지방검찰청", number:"010-43XX-1X35" },
+
+  voiceUrl: "https://koreapolkim.github.io/vv/gum.mp3", // ✅ 추가
+
+  keyPoints:["공포/권위로 압박", "비밀 유지로 고립", "송금/설치 지시=즉시 중단+공식 콜백"],
+
+  oneLiner:"수사기관은 전화로 송금·앱설치를 지시하지 않습니다. 끊고 공식 번호로 확인하세요.",
+
+  steps:[
+
+    {type:"line",from:"other",text:"여기는 ○○지검 수사과입니다. 고객님 명의 계좌가 범죄자금 흐름에 연루됐습니다."},
+
+    {type:"line",from:"other",text:"지금 통화 끊으면 ‘증거인멸’로 기록될 수 있어요. 사건번호 불러드릴 테니 받아 적으세요."},
+
+    {type:"q",prompt:"이런 협박성 안내가 오면 가장 안전한 반응은?",
+      choices:[
+        {text:"통화 종료 후 ‘내가 직접’ 공식 대표번호로 확인", score:+20,
+          feedback:"협박/공포는 보이스피싱에서 흔합니다.",
+          why:"공식 확인은 끊고도 가능합니다.",
+          vector: V(+2,0,0,+2,0,+1),
+          reply:"이 방식은 신뢰하기 어렵습니다. 통화 끊고 공식 대표번호로 확인하겠습니다."
+        },
+        {text:"무서우니 시키는 대로 따른다", score:-20,
+          feedback:"공포로 통제하는 전형적인 패턴입니다.",
+          why:"서두르게 만들어 송금/설치를 시킵니다.",
+          vector: V(-2,0,0,-2,-2,-1),
+          reply:"알겠습니다… 시키는 대로 할게요…"
+        }
+      ]
+    },
+
+    {type:"line",from:"other",text:"이건 보안 사건이라 가족/지인에게 말하면 수사가 방해됩니다. 혼자 조용히 처리하세요."},
+    {type:"line",from:"other",text:"지금부터 제가 안내하는 절차대로만 하시면 ‘피의자 전환’을 막을 수 있습니다."},
+
+    {type:"q",prompt:"‘비밀 유지’가 나오면?",
+      choices:[
+        {text:"고위험 신호. 주변과 상의하고 공식 채널로 확인", score:+15,
+          feedback:"비밀 요구는 고립을 만들기 위한 장치예요.",
+          why:"공유가 방어입니다.",
+          vector: V(+1,0,0,+2,0,+2),
+          reply:"비밀로 하라는 건 더 수상합니다. 주변과 상의하고 공식 채널로 확인하겠습니다."
+        },
+        {text:"보안 사건이니 혼자 처리한다", score:-15,
+          feedback:"고립되면 판단이 흔들립니다.",
+          why:"사기는 고립을 선호합니다.",
+          vector: V(-1,0,0,-2,0,-2),
+          reply:"보안이면 혼자 처리해야겠네요…"
+        }
+      ]
+    },
+
+    {type:"line",from:"other",text:"고객님 자금이 추가 피해를 막으려면 ‘보호조치’가 필요합니다."},
+    {type:"line",from:"other",text:"지금 알려드리는 ‘안전계좌’로 이체해서 분리 보관하세요. 확인되면 바로 돌려드립니다. 지금 송금하세요."},
+
+    {type:"q",prompt:"‘안전 계좌’로 송금 지시가 오면?",
+      choices:[
+        {text:"절대 송금하지 않고 종료 후 공식 확인/신고", score:+20,
+          feedback:"‘안전계좌’는 대표 사기 문구입니다.",
+          why:"수사기관/공공기관은 송금을 지시하지 않습니다.",
+          vector: V(+1,0,0,+1,+2,+1),
+          reply:"송금은 못 합니다. 통화 끊고 공식 채널로 확인하겠습니다."
+        },
+        {text:"내 돈을 지키려면 보내야 한다", score:-20,
+          feedback:"‘지킨다’는 말로 속입니다.",
+          why:"송금 순간 회수 어렵습니다.",
+          vector: V(-2,0,0,-1,-2,-1),
+          reply:"지키려면 보내야겠죠…"
+        }
+      ]
+    },
+
+    {type:"line",from:"other",text:"그럼 신원 확인을 위해 보안앱을 설치하셔야 합니다. 문자로 링크 보내겠습니다."},
+    {type:"line",from:"other",text:"설치 후 안내에 따라 권한을 허용하면 ‘수사협조 확인서’가 발급됩니다."},
+
+    {type:"q",prompt:"문자 링크/앱 설치를 유도하면?",
+      choices:[
+        {text:"즉시 중단. 설치/권한 요청은 절대 금지", score:+15,
+          feedback:"설치 유도는 원격제어/탈취로 이어질 수 있어요.",
+          why:"고위험 단계입니다.",
+          vector: V(+1,+1,+2,+1,0,+1),
+          reply:"앱 설치는 절대 못 합니다. 여기서 중단하겠습니다."
+        },
+        {text:"수사니까 설치해도 된다", score:-15,
+          feedback:"‘수사’는 쉽게 사칭됩니다.",
+          why:"설치 순간 권한 탈취가 가능해요.",
+          vector: V(-1,-1,-2,0,0,-1),
+          reply:"수사라면 설치해도 되겠죠…"
+        }
+      ]
+    },
+
+    {type:"line",from:"other",text:"마지막으로 말씀드립니다. 지금 협조 안 하면 출석요구서가 발부됩니다."},
+
+    {type:"q",prompt:"안전한 마무리는?",
+      choices:[
+        {text:"통화기록/문자 캡처 → 112·금융사 고객센터 등 신고/지급정지 검토", score:+10,
+          feedback:"기록이 있어야 대응이 빨라요.",
+          why:"돈을 보냈거나 보낼 뻔했다면 지급정지가 최우선입니다.",
+          vector: V(+1,0,0,0,+1,+2),
+          reply:"기록 남기고 신고하겠습니다. 필요하면 금융사에 지급정지도 문의할게요."
+        },
+        {text:"귀찮으니 그냥 잊는다", score:-5,
+          feedback:"신고가 피해 확산을 막습니다.",
+          why:"반복 범죄가 많아요.",
+          vector: V(0,0,0,0,0,-1),
+          reply:"그냥 잊어버릴게요."
+        }
+      ]
+    }
+
+  ]
+
+};
+
+
+
+window.SCENARIOS.exp_c_self_hostage = {
+
+  type:"call",
+
+  speedMs: 1250,
+
+  title:"셀프 감금형(전화)",
+
+  incoming:{ name:"대검찰청", number:"010-98XX-5X32" },
+
+  voiceUrl: "https://koreapolkim.github.io/vv/self.mp3", // ✅ 추가
+
+  keyPoints:["불안 자극→고립 유도", "통화 유지로 통제", "ATM/현금화 지시=즉시 중단+도움 요청"],
+
+  oneLiner:"‘혼자 있어/끊지 마’는 통제 신호입니다. 즉시 통화 종료 후 주변 도움을 요청하세요.",
+
+  steps:[
+
+    {type:"line",from:"other",text:"고객님, 지금 개인정보 유출 건으로 긴급 연락드렸습니다. 주변에 누가 있나요?"},
+    {type:"line",from:"other",text:"지금 옆에 누가 있으면 정보가 새서 피해가 커질 수 있어요. 조용한 곳으로 이동하시고, 통화는 절대 끊지 마세요."},
+
+    {type:"q",prompt:"상대가 ‘혼자 있어/통화 끊지 마’라고 지시하면?",
+      choices:[
+        {text:"즉시 통화 종료 → 가족/지인에게 공유 + 필요 시 112 신고", score:+20,
+          feedback:"고립과 통제는 매우 위험한 신호입니다.",
+          why:"혼자 있게 만들면 조종하기 쉬워요.",
+          vector: V(+2,0,0,+2,0,+2),
+          reply:"이건 위험하네요. 통화 끊고 가족에게 먼저 연락하겠습니다."
+        },
+        {text:"지시대로 이동하며 계속 통화한다", score:-20,
+          feedback:"통제에 들어가면 피해가 커질 수 있어요.",
+          why:"고립은 사기의 핵심 단계입니다.",
+          vector: V(-2,0,0,-2,-2,-2),
+          reply:"알겠습니다… 조용한 곳으로 이동할게요."
+        }
+      ]
+    },
+
+    {type:"line",from:"other",text:"좋습니다. 지금부터는 제 안내대로만 하세요. 주변 사람에게 말하면 ‘보안 위반’으로 처리될 수 있어요."},
+    {type:"line",from:"other",text:"고객님 계좌가 위험합니다. 지금 바로 ‘보호조치’를 해야 합니다."},
+    {type:"line",from:"other",text:"가까운 ATM으로 이동 가능하신가요? 현금 인출로 계좌를 ‘잠금 해제’하는 절차가 필요합니다."},
+    {type:"line",from:"other",text:"지금 통화 끊으면 절차가 실패해서 더 큰 피해가 날 수 있어요. 계속 연결 유지하세요."},
+
+    {type:"q",prompt:"ATM/현금 인출 지시가 나오면?",
+      choices:[
+        {text:"즉시 중단. ATM 지시는 고위험(현금화) 신호", score:+20,
+          feedback:"ATM 지시는 ‘현금화’로 이어질 가능성이 큽니다.",
+          why:"현금은 회수가 매우 어려워요.",
+          vector: V(+1,0,0,+1,+2,+1),
+          reply:"ATM 가라는 건 너무 수상합니다. 여기서 중단하겠습니다."
+        },
+        {text:"안전조치라니 따라간다", score:-20,
+          feedback:"‘안전’이라는 말로 속입니다.",
+          why:"현금화는 사기의 목표예요.",
+          vector: V(-2,0,0,-1,-2,-1),
+          reply:"안전조치면 따라가야겠죠…"
+        }
+      ]
+    },
+
+    {type:"line",from:"other",text:"지금 이건 국가 보안 건이라… 가족에게 말하면 오히려 고객님이 불리해집니다. 절대 공유하지 마세요."},
+
+    {type:"q",prompt:"주변에 말하지 말라고 하면?",
+      choices:[
+        {text:"오히려 위험. 주변과 즉시 공유", score:+15,
+          feedback:"공유가 방어입니다.",
+          why:"고립이 깨지면 사기 진행이 어려워져요.",
+          vector: V(+1,0,0,+2,0,+2),
+          reply:"저는 이런 건 주변과 바로 상의하겠습니다."
+        },
+        {text:"보안이라니까 혼자 처리", score:-15,
+          feedback:"혼자일수록 조종당하기 쉽습니다.",
+          why:"고립이 목적입니다.",
+          vector: V(-1,0,0,-2,0,-2),
+          reply:"보안이면 혼자 해야겠네요…"
+        }
+      ]
+    },
+
+    {type:"line",from:"other",text:"통화는 계속 유지하세요. 끊으면 보호조치가 해제됩니다. 지금 바로 실행하셔야 합니다."},
+
+    {type:"q",prompt:"상대 지시가 계속 이어질 때 안전한 행동은?",
+      choices:[
+        {text:"통화 종료 → 가까운 사람/기관에 도움 요청(경찰/금융사)", score:+15,
+          feedback:"통화 유지 자체가 통제 수단일 수 있어요.",
+          why:"통제에서 빠져나오는 게 우선입니다.",
+          vector: V(+2,0,0,+1,0,+2),
+          reply:"이 통화 자체가 이상합니다. 끊고 도움을 요청하겠습니다."
+        },
+        {text:"상대가 무섭게 말하니 계속 따른다", score:-15,
+          feedback:"공포로 통제합니다.",
+          why:"따를수록 피해가 커질 수 있어요.",
+          vector: V(-2,0,0,-2,-1,-1),
+          reply:"무서우니까 계속 따를게요…"
+        }
+      ]
+    },
+
+    {type:"line",from:"other",text:"마지막입니다. 지금 말 안 들으면 큰일 납니다. 절차만 끝내면 됩니다."},
+
+    {type:"q",prompt:"마지막으로 기억할 원칙은?",
+      choices:[
+        {text:"‘고립/통제’ 신호가 나오면 즉시 끊고 도움 요청", score:+10,
+          feedback:"고립을 깨는 게 가장 중요합니다.",
+          why:"공식 확인은 끊고도 가능합니다.",
+          vector: V(+1,0,0,+1,0,+2),
+          reply:"고립시키려 하면 바로 끊고 도움을 요청하겠습니다."
+        },
+        {text:"진짜일 수도 있으니 끝까지 듣는다", score:-5,
+          feedback:"안전이 우선입니다.",
+          why:"듣는 동안 통제가 강화될 수 있어요.",
+          vector: V(0,0,0,0,0,-1),
+          reply:"끝까지 들어보고 판단할게요."
+        }
+      ]
+    }
+
+  ]
+
+};
+
+</script>
+
+<script id="polcare-request-patch-script">
+(function () {
+  /* ✅ (요청) 더블탭 확대(줌) 방지 */
+  let lastTouchEnd = 0;
+  document.addEventListener('touchend', function (e) {
+    const now = Date.now();
+    if (now - lastTouchEnd <= 300) e.preventDefault();
+    lastTouchEnd = now;
+  }, { passive: false });
+
+  document.addEventListener('gesturestart', e => e.preventDefault(), { passive: false });
+  document.addEventListener('dblclick', e => e.preventDefault(), { passive: false });
+
+  /* ✅ (요청) HTML 복사 억제(완전 차단 X) */
+  document.addEventListener('contextmenu', e => e.preventDefault());
+  document.addEventListener('copy', e => e.preventDefault());
+  document.addEventListener('cut', e => e.preventDefault());
+
+
+  /* ✅ (요청) 안전지수 0~100 정규화 “교체용” 함수
+     - PART1/2의 기존 안전지수 계산 로직에서
+       (earned / maxPossible) * 100 으로 정규화되게만 바꾸면
+       “전부 정답인데 100이 안 나오는” 문제 대부분 해결됩니다.
+  */
+  window.POLCARE_calcSafety100 = function (earned, maxPossible) {
+    const max = Math.max(1, Number(maxPossible || 0));
+    const got = Number(earned || 0);
+    const pct = Math.round((got / max) * 100);
+    return Math.max(0, Math.min(100, pct));
+  };
+})();
+</script>
+
+
+</body>
+</html>
+
